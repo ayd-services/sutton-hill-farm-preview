@@ -208,6 +208,20 @@ main { padding: 40px clamp(20px, 4vw, 56px) 80px; max-width: 1040px; }
 
 .illustrative-flag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--status-need); background: var(--status-need-bg); border: 1px solid color-mix(in srgb, var(--status-need) 35%, transparent); border-radius: 4px; padding: 4px 8px; width: fit-content; margin-bottom: 12px; }
 
+.table-scroll { overflow-x: auto; }
+table.audit-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+table.audit-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); padding: 0 12px 10px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+table.audit-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.audit-table td.num { font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums; }
+table.audit-table tr:last-child td { border-bottom: none; }
+.read-pill { display: inline-flex; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.read-good { background: var(--status-good-bg); color: var(--status-good); }
+.read-warn { background: var(--status-warn-bg); color: var(--status-warn); }
+.read-neutral { background: var(--surface-2); color: var(--ink-muted); }
+
+select, input[type="text"] { font-family: 'IBM Plex Sans', sans-serif; font-size: 13.5px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); }
+input[type="text"] { width: 100%; }
+
 .qa-examples { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
 .qa-example-btn { all: unset; cursor: pointer; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-strong); font-size: 13px; color: var(--ink); background: var(--surface); }
 .qa-example-btn:hover { background: var(--bg); }
@@ -251,6 +265,10 @@ main { padding: 40px clamp(20px, 4vw, 56px) 80px; max-width: 1040px; }
       <button data-panel="worth" aria-selected="false">
         <span class="t">What's It Worth?</span>
         <span class="s">Consignment valuation assistant — illustrative</span>
+      </button>
+      <button data-panel="audit" aria-selected="false">
+        <span class="t">Bidder Audit</span>
+        <span class="s">What bidders want vs what you have — illustrative</span>
       </button>
     </nav>
 
@@ -371,9 +389,67 @@ main { padding: 40px clamp(20px, 4vw, 56px) 80px; max-width: 1040px; }
       </div>
     </section>
 
+    <!-- 4. BIDDER AUDIT (illustrative demand, real supply signal) -->
+    <section class="panel" id="panel-audit">
+      <div class="panel-head">
+        <span class="eyebrow">04 · Bidder audit</span>
+        <h2>What bidders are looking for, against what you actually have</h2>
+        <p class="question">The same audit an established auction house runs on its own bidder base —
+          demand by category, checked against your catalogue's supply — to spot where you're leaving
+          money on the table, either by under-sourcing a hot category or over-sourcing a quiet one.</p>
+      </div>
+
+      <div class="card">
+        <span class="illustrative-flag">Bidder demand simulated — Easy Live doesn't expose this publicly</span>
+        <h3>Demand vs. supply, by category</h3>
+        <p class="caption">"Est. interested bidders" is a simulated placeholder (we have no visibility
+          into real bidder registrations) — but lot volume and sell-through rate are your real numbers,
+          and the read below is judged from those, not the simulated column.</p>
+        <div class="table-scroll">
+          <table class="audit-table" id="audit-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th style="text-align:right">Lots (real supply)</th>
+                <th style="text-align:right">Sell-through (real)</th>
+                <th style="text-align:right">Est. interested bidders (simulated)</th>
+                <th>Read</th>
+              </tr>
+            </thead>
+            <tbody id="audit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="illustrative-flag">Illustrative demo — the mechanism, not a working search</span>
+        <h3>Match a bidder to a category</h3>
+        <p class="caption">Same underlying idea as the valuation assistant on the previous tab — a bidder
+          describes what they're after in their own words, and it's matched against your category
+          descriptions, rather than making them pick from a fixed list.</p>
+        <div class="qa-examples" id="bidder-examples"></div>
+        <input type="text" id="bidder-input" placeholder="Or describe what you're looking for…" style="margin-bottom:16px">
+        <div class="answer-card" id="bidder-answer-card">
+          <p style="color:var(--ink-muted); font-size:13.5px; margin:0">Pick an example above to see how the match would look.</p>
+        </div>
+      </div>
+
+      <div class="need-box">
+        <span class="lbl">What this would need to become real</span>
+        <p>Your actual bidder registration/interest data from Easy Live — who's registered, what
+          categories they've bid on before, how recently. With that, the "est. interested bidders" column
+          stops being a simulation and this becomes a real gap-finder: genuine under-served categories
+          worth sourcing more of, and over-supplied ones where cataloguing effort might be better spent
+          elsewhere. Worth noting honestly: on sell-through alone, your categories are all fairly healthy
+          (80–88%) — a real bidder audit is more likely to sharpen *where* to focus than to reveal a
+          hidden crisis.</p>
+      </div>
+    </section>
+
     <p class="footer-note">Sell-through, category, and pattern figures on the first tab are computed
       directly from Sutton Hill Farm's own publicly-listed catalogue pages (2020–2026) — nothing here was
-      provided by Debbie or assumed. Market Position and What's It Worth are illustrative concepts.
+      provided by Debbie or assumed. Market Position, What's It Worth, and the simulated bidder-demand
+      column on Bidder Audit are illustrative concepts.
       Prepared by AYD.</p>
   </main>
 </div>
@@ -627,6 +703,115 @@ function showAnswer(i, btnEl) {
   card.innerHTML = `<div class="range">${ex.range}</div><p class="a-text">${ex.a}</p>` +
     ex.citations.map(c => `<div class="citation"><span class="src-tag">${c.tag}</span><span class="desc">${c.desc}${c.real ? '<span class="real-tag">real lot</span>' : ''}</span></div>`).join('');
 }
+
+// ---------- Tab 4: bidder audit — simulated demand column, real supply/sell-through ----------
+(function () {
+  // Simulated placeholder — no real bidder-registration data exists to draw this from.
+  // Roughly shaped on typical general-antiques-audience popularity, nothing more.
+  const simulatedInterest = {
+    'Jewellery': 340, 'Collectables': 310, 'Silver': 210, 'Watches': 180,
+    'Furniture': 120, 'Militaria': 95, 'Models': 70, 'Household': 60,
+    'Coins': 55, 'White Goods': 20,
+  };
+
+  function readFor(sellThrough) {
+    if (sellThrough >= 85) return { text: 'Demand comfortably covers supply', cls: 'read-good' };
+    if (sellThrough >= 80) return { text: 'Broadly balanced', cls: 'read-neutral' };
+    return { text: 'Supply may be outpacing demand', cls: 'read-warn' };
+  }
+
+  const rows = STATS.category_summary
+    .filter(c => c.category !== 'Other / uncategorised' && simulatedInterest[c.category] !== undefined)
+    .sort((a, b) => simulatedInterest[b.category] - simulatedInterest[a.category]);
+
+  const tbody = document.getElementById('audit-tbody');
+  tbody.innerHTML = rows.map(c => {
+    const read = readFor(c.sell_through_pct);
+    return `
+      <tr>
+        <td>${c.category}</td>
+        <td class="num">${fmtInt(c.total_lots)}</td>
+        <td class="num">${c.sell_through_pct}%</td>
+        <td class="num">${fmtInt(simulatedInterest[c.category])}</td>
+        <td><span class="read-pill ${read.cls}">${read.text}</span></td>
+      </tr>
+    `;
+  }).join('');
+})();
+
+// ---------- Tab 4 (cont.): free-text bidder → category matching, same mechanism as Tab 3 ----------
+(function () {
+  // Same keyword-vocabulary approach used to derive category in the data prep step —
+  // illustrative here (keyword match), a real version would embed + retrieve like the
+  // valuation assistant.
+  const CATEGORY_KEYWORDS = [
+    ['Watches', [/\bwatch(es)?\b/, /wristwatch/, /pocket watch/]],
+    ['Jewellery', [/\bring\b/, /necklace/, /brooch/, /earring/, /bracelet/, /pendant/, /jewellery/, /jewelry/, /gemstone/, /gold\b/]],
+    ['Silver', [/\bsilver\b/, /hallmark/, /sterling/, /tableware/]],
+    ['Coins', [/\bcoin(s)?\b/, /sovereign/, /banknote/, /numismat/]],
+    ['Militaria', [/militar/, /\bmedal(s)?\b/, /bayonet/, /helmet/, /regiment/, /\bww1\b/, /\bww2\b/, /\bwar\b/]],
+    ['Models', [/\bmodel(s)?\b/, /diecast/, /dinky/, /corgi/, /train set/, /matchbox/, /toys?/]],
+    ['Collectables', [/collect/, /figurine/, /ornament/, /vintage/, /antique/, /curiosit/]],
+    ['Furniture', [/\btable\b/, /\bchair(s)?\b/, /cabinet/, /wardrobe/, /sideboard/, /\bdesk\b/, /bookcase/, /furniture/, /sofa/, /bureau/]],
+    ['Household', [/household/, /kitchenware/, /glassware/, /ceramic/, /porcelain/, /\bchina\b/, /pottery/]],
+  ];
+
+  function matchCategory(text) {
+    const t = text.toLowerCase();
+    for (const [cat, patterns] of CATEGORY_KEYWORDS) {
+      if (patterns.some(p => p.test(t))) return cat;
+    }
+    return null;
+  }
+
+  function renderMatch(query, matched) {
+    const card = document.getElementById('bidder-answer-card');
+    if (!matched) {
+      card.innerHTML = `<p style="font-size:13.5px; color:var(--ink-muted); margin:0">No confident category match for "${query}" in this demo's keyword list — a real version would use semantic retrieval, not exact keywords, and would handle this gracefully.</p>`;
+      return;
+    }
+    const c = STATS.category_summary.find(x => x.category === matched);
+    if (!c) { card.innerHTML = `<p style="font-size:13.5px; color:var(--ink-muted); margin:0">Matched "${matched}", but no real data available for it.</p>`; return; }
+    const read = c.sell_through_pct >= 85
+      ? { text: 'Demand comfortably covers supply', cls: 'read-good' }
+      : c.sell_through_pct >= 80
+        ? { text: 'Broadly balanced', cls: 'read-neutral' }
+        : { text: 'Supply may be outpacing demand', cls: 'read-warn' };
+    card.innerHTML = `
+      <p class="a-text">"${query}" → matched to <strong>${matched}</strong></p>
+      <div class="citation"><span class="src-tag">Real supply</span><span class="desc">${fmtInt(c.total_lots)} lots (2020–2026)</span></div>
+      <div class="citation"><span class="src-tag">Real sell-through</span><span class="desc">${c.sell_through_pct}%</span></div>
+      <div class="citation"><span class="src-tag">Read</span><span class="desc"><span class="read-pill ${read.cls}">${read.text}</span></span></div>
+    `;
+  }
+
+  const bidderExamples = [
+    'I collect WWI and WWII medals and militaria',
+    'Looking for antique silver tableware, hallmarked pieces',
+    'Interested in diecast model cars and vintage toys',
+    'After gold jewellery with coloured gemstones',
+  ];
+  const box = document.getElementById('bidder-examples');
+  bidderExamples.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'qa-example-btn';
+    btn.textContent = q;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#bidder-examples .qa-example-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMatch(q, matchCategory(q));
+    });
+    box.appendChild(btn);
+  });
+
+  document.getElementById('bidder-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      document.querySelectorAll('#bidder-examples .qa-example-btn').forEach(b => b.classList.remove('active'));
+      const q = e.target.value.trim();
+      if (q) renderMatch(q, matchCategory(q));
+    }
+  });
+})();
 </script>
 </body>
 </html>

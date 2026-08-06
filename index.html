@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sutton Hill Farm — Data Preview</title>
-<meta name="description" content="Illustrative preview built by AYD Services — grounded in Sutton Hill Farm's own public sale history.">
+<meta name="robots" content="noindex, nofollow">
+<title>Auction House A — Data Preview</title>
+<meta name="description" content="Illustrative preview built by AYD Services — grounded in a client auction house's own public sale history.">
 <style>
 
 @font-face {
@@ -248,7 +249,7 @@ input[type="text"] { width: 100%; }
 <div class="shell">
   <aside class="rail">
     <div class="brand">
-      <span class="mark">Sutton Hill Farm</span>
+      <span class="mark">Auction House A</span>
       <span class="for">Data preview — prepared by AYD</span>
     </div>
     <span class="synthetic-badge">Grounded in real sale history</span>
@@ -345,8 +346,8 @@ input[type="text"] { width: 100%; }
       <div class="card">
         <span class="illustrative-flag">Illustrative — competitor data not yet collected</span>
         <h3>Sell-through by house (example shape)</h3>
-        <p class="caption">Once Gildings Auctioneers (Market Harborough) and Churchgate Auctions
-          (Leicester) are added, this becomes a real comparison — the numbers below are placeholders to
+        <p class="caption">Once Competitor B and Competitor C
+          are added, this becomes a real comparison — the numbers below are placeholders to
           show what it would look like</p>
         <div class="chart-wrap" id="chart-competitors"></div>
         <div class="legend" id="legend-competitors"></div>
@@ -354,9 +355,9 @@ input[type="text"] { width: 100%; }
 
       <div class="need-box">
         <span class="lbl">What this needs to become real</span>
-        <p>The same scraper approach used for your own site, pointed at Gildings' and Churchgate's public
-          results — Gildings runs on a different platform to yours, so it needs its own scraper built
-          first (queued, not started yet). Churchgate doesn't appear to publish a structured results
+        <p>The same scraper approach used for your own site, pointed at Competitor B's and Competitor C's public
+          results — Competitor B runs on a different platform to yours, so it needs its own scraper built
+          first (queued, not started yet). Competitor C doesn't appear to publish a structured results
           archive at all, so that one may not be possible the same way.</p>
       </div>
     </section>
@@ -447,8 +448,8 @@ input[type="text"] { width: 100%; }
     </section>
 
     <p class="footer-note">Sell-through, category, and pattern figures on the first tab are computed
-      directly from Sutton Hill Farm's own publicly-listed catalogue pages (2020–2026) — nothing here was
-      provided by Debbie or assumed. Market Position, What's It Worth, and the simulated bidder-demand
+      directly from Auction House A's own publicly-listed catalogue pages (2020–2026) — nothing here was
+      provided by the client or assumed. Market Position, What's It Worth, and the simulated bidder-demand
       column on Bidder Audit are illustrative concepts.
       Prepared by AYD.</p>
   </main>
@@ -636,9 +637,9 @@ document.getElementById('callout-text').innerHTML =
 // ---------- Tab 2: illustrative competitor comparison ----------
 (function () {
   const competitors = [
-    { label: 'Sutton Hill Farm (you — real)', value: STATS.overall.sell_through_pct, valueLabel: STATS.overall.sell_through_pct + '%', color: cssVar('--accent-deep') },
-    { label: 'Gildings Auctioneers (illustrative)', value: 76, valueLabel: '76% (placeholder)', color: cssVar('--line-primary') },
-    { label: 'Churchgate Auctions (illustrative)', value: 71, valueLabel: '71% (placeholder)', color: cssVar('--line-secondary') },
+    { label: 'Auction House A (you — real)', value: STATS.overall.sell_through_pct, valueLabel: STATS.overall.sell_through_pct + '%', color: cssVar('--accent-deep') },
+    { label: 'Competitor B (illustrative)', value: 76, valueLabel: '76% (placeholder)', color: cssVar('--line-primary') },
+    { label: 'Competitor C (illustrative)', value: 71, valueLabel: '71% (placeholder)', color: cssVar('--line-secondary') },
   ];
   const container = document.getElementById('chart-competitors');
   const barH = 32, gap = 18, padL = 210, padR = 70, padT = 10, padB = 10;

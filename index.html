@@ -208,6 +208,7 @@ main { padding: 40px clamp(20px, 4vw, 56px) 80px; max-width: 1040px; }
 .need-box p { margin: 0; font-size: 13.5px; color: var(--ink); }
 
 .illustrative-flag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--status-need); background: var(--status-need-bg); border: 1px solid color-mix(in srgb, var(--status-need) 35%, transparent); border-radius: 4px; padding: 4px 8px; width: fit-content; margin-bottom: 12px; }
+.real-flag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--status-good); background: var(--status-good-bg); border: 1px solid color-mix(in srgb, var(--status-good) 35%, transparent); border-radius: 4px; padding: 4px 8px; width: fit-content; margin-bottom: 12px; }
 
 .table-scroll { overflow-x: auto; }
 table.audit-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
@@ -242,6 +243,15 @@ input[type="text"] { width: 100%; }
 .citation .desc .real-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--status-good); background: var(--status-good-bg); padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
 
 .footer-note { font-size: 12px; color: var(--ink-muted); padding: 24px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
+
+.topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.topic-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: var(--bg); }
+.topic-card .n { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-muted); margin-bottom: 6px; }
+.topic-card .terms { font-size: 13px; font-weight: 600; margin-bottom: 8px; line-height: 1.5; }
+.topic-card .example { font-size: 12px; color: var(--ink-muted); font-style: italic; }
+.rag-card { border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin-bottom: 14px; background: var(--surface); }
+.rag-card .query { font-size: 13px; color: var(--ink-muted); margin-bottom: 6px; }
+.rag-card .draft { font-size: 14px; line-height: 1.55; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -261,7 +271,7 @@ input[type="text"] { width: 100%; }
       </button>
       <button data-panel="market" aria-selected="false">
         <span class="t">Market Position</span>
-        <span class="s">vs. local competitors — illustrative</span>
+        <span class="s">vs. Gildings Auctioneers — real data</span>
       </button>
       <button data-panel="worth" aria-selected="false">
         <span class="t">What's It Worth?</span>
@@ -269,7 +279,15 @@ input[type="text"] { width: 100%; }
       </button>
       <button data-panel="audit" aria-selected="false">
         <span class="t">Bidder Audit</span>
-        <span class="s">What bidders want vs what you have — illustrative</span>
+        <span class="s">What bidders want vs what you have — real matches</span>
+      </button>
+      <button data-panel="topics" aria-selected="false">
+        <span class="t">Semantic Topics</span>
+        <span class="s">Real categories, sample-based — Sutton vs Gildings</span>
+      </button>
+      <button data-panel="rag" aria-selected="false">
+        <span class="t">Draft Description Assistant</span>
+        <span class="s">RAG retrieval demo — real matches, dummy generation</span>
       </button>
     </nav>
 
@@ -338,27 +356,48 @@ input[type="text"] { width: 100%; }
     <section class="panel" id="panel-market">
       <div class="panel-head">
         <span class="eyebrow">02 · Market position</span>
-        <h2>How you compare to other local auction houses</h2>
-        <p class="question">Same category mix, same region, different sell-through and pricing patterns —
-          worth knowing whether you're in line with, ahead of, or behind the local market.</p>
+        <h2>How you compare to Gildings Auctioneers</h2>
+        <p class="question">Gildings (Market Harborough, ~15 miles away) runs the same kind of general
+          antiques &amp; collectables sale, same region — a genuine local peer, not a guess at one.
+          Both sides below are pulled from each house's own public sale results, same method used on
+          your own data.</p>
       </div>
 
       <div class="card">
-        <span class="illustrative-flag">Illustrative — competitor data not yet collected</span>
-        <h3>Sell-through by house (example shape)</h3>
-        <p class="caption">Once Competitor B and Competitor C
-          are added, this becomes a real comparison — the numbers below are placeholders to
-          show what it would look like</p>
-        <div class="chart-wrap" id="chart-competitors"></div>
-        <div class="legend" id="legend-competitors"></div>
+        <span class="real-flag">Real data — both sides scraped from public sale results</span>
+        <h3>Coverage</h3>
+        <div class="kpi-row">
+          <div class="kpi"><span class="v mono" id="kpi-gildings-lots">—</span><span class="l">Gildings sold lots (2018–2026)</span></div>
+          <div class="kpi"><span class="v mono" id="kpi-gildings-avg">—</span><span class="l">Gildings average hammer price</span></div>
+          <div class="kpi"><span class="v mono" id="kpi-sutton-avg">—</span><span class="l">Your average hammer price</span></div>
+          <div class="kpi"><span class="v mono" id="kpi-price-ratio">—</span><span class="l">Gildings vs. you, per lot</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Average hammer price by year</h3>
+        <p class="caption">Sold lots only, both houses, same calculation on each side · hover a bar for the year's detail</p>
+        <div class="chart-wrap" id="chart-market-price"></div>
+        <div class="legend" id="legend-market-price"></div>
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Why sell-through rate isn't on this tab</span>
+        <p>Gildings' scraped sale results show ~99–100% "sold" in every year — almost certainly because
+          their site removes or hides a lot's page once it's unsold, rather than leaving it visible the
+          way yours does. Comparing that number against your own real, independently-verified 82.7%
+          sell-through would overstate the gap and isn't a fair comparison, so it's deliberately left out
+          here. Average hammer price is used instead — it's calculated the same way on both sides and
+          isn't affected by that difference.</p>
       </div>
 
       <div class="need-box">
-        <span class="lbl">What this needs to become real</span>
-        <p>The same scraper approach used for your own site, pointed at Competitor B's and Competitor C's public
-          results — Competitor B runs on a different platform to yours, so it needs its own scraper built
-          first (queued, not started yet). Competitor C doesn't appear to publish a structured results
-          archive at all, so that one may not be possible the same way.</p>
+        <span class="lbl">What this shows, and what it doesn't yet</span>
+        <p id="market-summary-text">Gildings consistently hammers at a higher average price than you, every year in the
+          comparison — a real, consistent gap, not a one-off. It doesn't yet say *why*: it could be a
+          different item mix (higher-value antiques vs. general household), a different bidder base, or
+          straightforward market positioning. The semantic/category comparison and topic modelling work
+          in progress is aimed at answering that "why" question next.</p>
       </div>
     </section>
 
@@ -423,27 +462,96 @@ input[type="text"] { width: 100%; }
       </div>
 
       <div class="card">
-        <span class="illustrative-flag">Illustrative demo — the mechanism, not a working search</span>
-        <h3>Match a bidder to a category</h3>
-        <p class="caption">Same underlying idea as the valuation assistant on the previous tab — a bidder
-          describes what they're after in their own words, and it's matched against your category
-          descriptions, rather than making them pick from a fixed list.</p>
+        <span class="real-flag">Real retrieval — genuine matching lots from your sale history</span>
+        <h3>Match a bidder to actual lots, not just a category</h3>
+        <p class="caption">Same retrieval engine as the Draft Description Assistant tab, reframed: a bidder
+          describes what they're after in their own words, and it's matched by meaning against your real
+          past lot descriptions — surfacing the actual products, not just a category-level stat. Precomputed
+          for the four examples below (this is a static demo page — a live version would call the embedding
+          API from a small backend, not the browser).</p>
         <div class="qa-examples" id="bidder-examples"></div>
-        <input type="text" id="bidder-input" placeholder="Or describe what you're looking for…" style="margin-bottom:16px">
+        <input type="text" id="bidder-input" placeholder="Free text needs a live backend — try an example above…" style="margin-bottom:16px">
         <div class="answer-card" id="bidder-answer-card">
-          <p style="color:var(--ink-muted); font-size:13.5px; margin:0">Pick an example above to see how the match would look.</p>
+          <p style="color:var(--ink-muted); font-size:13.5px; margin:0">Pick an example above to see real matching lots from your sale history.</p>
         </div>
       </div>
 
       <div class="need-box">
         <span class="lbl">What this would need to become real</span>
-        <p>Your actual bidder registration/interest data from Easy Live — who's registered, what
+        <p>The lot-matching mechanism above already works on your real sale history — what's still missing
+          is your actual bidder registration/interest data from Easy Live: who's registered, what
           categories they've bid on before, how recently. With that, the "est. interested bidders" column
-          stops being a simulation and this becomes a real gap-finder: genuine under-served categories
-          worth sourcing more of, and over-supplied ones where cataloguing effort might be better spent
-          elsewhere. Worth noting honestly: on sell-through alone, your categories are all fairly healthy
-          (80–88%) — a real bidder audit is more likely to sharpen *where* to focus than to reveal a
-          hidden crisis.</p>
+          in the table above stops being a simulation and this becomes a real gap-finder: genuine
+          under-served categories worth sourcing more of, and over-supplied ones where cataloguing effort
+          might be better spent elsewhere. Worth noting honestly: on sell-through alone, your categories
+          are all fairly healthy (80–88%) — a real bidder audit is more likely to sharpen *where* to focus
+          than to reveal a hidden crisis.</p>
+      </div>
+    </section>
+
+    <!-- 5. SEMANTIC TOPICS (real, sample-based) -->
+    <section class="panel" id="panel-topics">
+      <div class="panel-head">
+        <span class="eyebrow">05 · Semantic structure</span>
+        <h2>What your lot descriptions actually cluster into</h2>
+        <p class="question">The "category" used elsewhere on this dashboard is a hand-picked keyword match —
+          useful, but not a real taxonomy (a third of all lots fall into "Other/uncategorised", everything
+          the keyword list missed). This tab shows what real topic modelling — letting the data define the
+          categories, not a guessed keyword list — actually surfaces.</p>
+      </div>
+
+      <div class="card">
+        <span class="real-flag" id="topics-flag">Real clusters — demo scale, not yet full corpus</span>
+        <p class="caption" id="topics-note"></p>
+      </div>
+
+      <div class="card">
+        <h3>Sutton Hill Farm — discovered topics</h3>
+        <p class="caption">Sorted by size · terms are the top TF-IDF words within each cluster, not chosen by hand</p>
+        <div id="topics-sutton" class="topic-grid"></div>
+      </div>
+
+      <div class="card">
+        <h3>Gildings — discovered topics</h3>
+        <p class="caption">Same method, same sample size, run separately on Gildings' own descriptions</p>
+        <div id="topics-gildings" class="topic-grid"></div>
+      </div>
+
+      <div class="need-box">
+        <span class="lbl">What this needs to become the real thing</span>
+        <p>Two steps: run this over the full corpus rather than a 10% sample (cheap — same pipeline, just
+          more embedding calls), and cross-reference the resulting Sutton/Gildings topics directly — e.g. is
+          "fine art paintings" a real Gildings category with little Sutton equivalent, or does it just show up
+          more because Gildings catalogues differently? That comparison is what actually explains the ~3.4×
+          average-price gap on the Market Position tab, not just the pricing gap on its own.</p>
+      </div>
+    </section>
+
+    <!-- 6. DRAFT DESCRIPTION ASSISTANT (RAG demo, real retrieval + dummy generation) -->
+    <section class="panel" id="panel-rag">
+      <div class="panel-head">
+        <span class="eyebrow">06 · Draft description assistant</span>
+        <h2>From a rough description to a grounded first draft</h2>
+        <p class="question">Cataloguing hundreds of lots by hand is a real bottleneck — this is a first look
+          at using your own 6 years of descriptions to draft new ones, grounded in genuinely comparable past
+          lots rather than a generic guess.</p>
+      </div>
+
+      <div class="card">
+        <span class="real-flag">Real retrieval, dummy generation</span>
+        <p class="caption" id="rag-note"></p>
+      </div>
+
+      <div id="rag-results"></div>
+
+      <div class="need-box">
+        <span class="lbl">What this needs to become real</span>
+        <p>The retrieval half already works on real data — nearest-neighbour search over embedded past
+          descriptions. What's templated here is the "draft" text itself: a real version would pass the
+          retrieved comparables to a language model to actually write a draft in your cataloguer's style,
+          not just quote the closest match. The retrieval infrastructure (embeddings + similarity search)
+          is the expensive part and it's already built — adding real generation on top is comparatively
+          small.</p>
       </div>
     </section>
 
@@ -457,6 +565,9 @@ input[type="text"] { width: 100%; }
 
 <script>
 const STATS = {"generated_from_lots": 177264, "overall": {"sold": 146582, "unsold": 30682, "sell_through_pct": 82.7}, "monthly_series": [{"month": "2020-03", "sold": 1762, "unsold": 470, "sell_through_pct": 78.9, "avg_hammer": 109.63}, {"month": "2020-05", "sold": 1511, "unsold": 138, "sell_through_pct": 91.6, "avg_hammer": 94.63}, {"month": "2020-06", "sold": 1630, "unsold": 166, "sell_through_pct": 90.8, "avg_hammer": 71.44}, {"month": "2020-07", "sold": 1661, "unsold": 263, "sell_through_pct": 86.3, "avg_hammer": 85.72}, {"month": "2020-08", "sold": 1577, "unsold": 169, "sell_through_pct": 90.3, "avg_hammer": 62.81}, {"month": "2020-09", "sold": 1653, "unsold": 241, "sell_through_pct": 87.3, "avg_hammer": 59.87}, {"month": "2020-10", "sold": 2555, "unsold": 293, "sell_through_pct": 89.7, "avg_hammer": 54.05}, {"month": "2020-11", "sold": 1955, "unsold": 218, "sell_through_pct": 90.0, "avg_hammer": 68.71}, {"month": "2020-12", "sold": 1466, "unsold": 231, "sell_through_pct": 86.4, "avg_hammer": 57.34}, {"month": "2021-01", "sold": 1762, "unsold": 152, "sell_through_pct": 92.1, "avg_hammer": 81.65}, {"month": "2021-02", "sold": 2042, "unsold": 164, "sell_through_pct": 92.6, "avg_hammer": 71.91}, {"month": "2021-03", "sold": 2233, "unsold": 282, "sell_through_pct": 88.8, "avg_hammer": 77.84}, {"month": "2021-04", "sold": 2761, "unsold": 332, "sell_through_pct": 89.3, "avg_hammer": 67.73}, {"month": "2021-05", "sold": 2362, "unsold": 372, "sell_through_pct": 86.4, "avg_hammer": 59.21}, {"month": "2021-06", "sold": 2003, "unsold": 392, "sell_through_pct": 83.6, "avg_hammer": 68.04}, {"month": "2021-07", "sold": 2050, "unsold": 332, "sell_through_pct": 86.1, "avg_hammer": 59.99}, {"month": "2021-08", "sold": 2015, "unsold": 394, "sell_through_pct": 83.6, "avg_hammer": 76.67}, {"month": "2021-09", "sold": 2004, "unsold": 345, "sell_through_pct": 85.3, "avg_hammer": 50.19}, {"month": "2021-10", "sold": 3115, "unsold": 500, "sell_through_pct": 86.2, "avg_hammer": 51.26}, {"month": "2021-11", "sold": 1985, "unsold": 331, "sell_through_pct": 85.7, "avg_hammer": 51.82}, {"month": "2021-12", "sold": 1669, "unsold": 381, "sell_through_pct": 81.4, "avg_hammer": 43.27}, {"month": "2022-01", "sold": 1919, "unsold": 233, "sell_through_pct": 89.2, "avg_hammer": 56.6}, {"month": "2022-02", "sold": 1846, "unsold": 205, "sell_through_pct": 90.0, "avg_hammer": 54.72}, {"month": "2022-03", "sold": 1798, "unsold": 368, "sell_through_pct": 83.0, "avg_hammer": 65.45}, {"month": "2022-04", "sold": 1716, "unsold": 377, "sell_through_pct": 82.0, "avg_hammer": 46.19}, {"month": "2022-05", "sold": 1664, "unsold": 359, "sell_through_pct": 82.3, "avg_hammer": 39.56}, {"month": "2022-06", "sold": 1845, "unsold": 316, "sell_through_pct": 85.4, "avg_hammer": 46.01}, {"month": "2022-07", "sold": 2678, "unsold": 763, "sell_through_pct": 77.8, "avg_hammer": 44.05}, {"month": "2022-08", "sold": 1985, "unsold": 324, "sell_through_pct": 86.0, "avg_hammer": 53.25}, {"month": "2022-09", "sold": 1797, "unsold": 396, "sell_through_pct": 81.9, "avg_hammer": 48.36}, {"month": "2022-10", "sold": 2322, "unsold": 286, "sell_through_pct": 89.0, "avg_hammer": 52.96}, {"month": "2022-11", "sold": 1961, "unsold": 322, "sell_through_pct": 85.9, "avg_hammer": 49.71}, {"month": "2022-12", "sold": 2717, "unsold": 412, "sell_through_pct": 86.8, "avg_hammer": 44.25}, {"month": "2023-01", "sold": 2054, "unsold": 266, "sell_through_pct": 88.5, "avg_hammer": 51.64}, {"month": "2023-02", "sold": 2062, "unsold": 405, "sell_through_pct": 83.6, "avg_hammer": 53.4}, {"month": "2023-03", "sold": 1981, "unsold": 303, "sell_through_pct": 86.7, "avg_hammer": 59.72}, {"month": "2023-04", "sold": 1807, "unsold": 319, "sell_through_pct": 85.0, "avg_hammer": 58.86}, {"month": "2023-05", "sold": 1687, "unsold": 535, "sell_through_pct": 75.9, "avg_hammer": 52.2}, {"month": "2023-06", "sold": 2246, "unsold": 518, "sell_through_pct": 81.3, "avg_hammer": 56.59}, {"month": "2023-07", "sold": 2456, "unsold": 531, "sell_through_pct": 82.2, "avg_hammer": 48.4}, {"month": "2023-08", "sold": 1923, "unsold": 342, "sell_through_pct": 84.9, "avg_hammer": 48.44}, {"month": "2023-09", "sold": 1871, "unsold": 419, "sell_through_pct": 81.7, "avg_hammer": 46.05}, {"month": "2023-10", "sold": 1990, "unsold": 293, "sell_through_pct": 87.2, "avg_hammer": 66.12}, {"month": "2023-11", "sold": 2138, "unsold": 287, "sell_through_pct": 88.2, "avg_hammer": 52.02}, {"month": "2023-12", "sold": 1862, "unsold": 377, "sell_through_pct": 83.2, "avg_hammer": 50.89}, {"month": "2024-01", "sold": 2225, "unsold": 520, "sell_through_pct": 81.1, "avg_hammer": 50.22}, {"month": "2024-02", "sold": 1864, "unsold": 346, "sell_through_pct": 84.3, "avg_hammer": 61.74}, {"month": "2024-03", "sold": 2033, "unsold": 436, "sell_through_pct": 82.3, "avg_hammer": 51.67}, {"month": "2024-04", "sold": 2083, "unsold": 405, "sell_through_pct": 83.7, "avg_hammer": 56.68}, {"month": "2024-05", "sold": 2223, "unsold": 558, "sell_through_pct": 79.9, "avg_hammer": 57.98}, {"month": "2024-06", "sold": 2320, "unsold": 532, "sell_through_pct": 81.3, "avg_hammer": 41.33}, {"month": "2024-07", "sold": 1686, "unsold": 516, "sell_through_pct": 76.6, "avg_hammer": 50.11}, {"month": "2024-08", "sold": 1690, "unsold": 477, "sell_through_pct": 78.0, "avg_hammer": 49.86}, {"month": "2024-09", "sold": 1573, "unsold": 503, "sell_through_pct": 75.8, "avg_hammer": 46.34}, {"month": "2024-10", "sold": 1780, "unsold": 464, "sell_through_pct": 79.3, "avg_hammer": 46.78}, {"month": "2024-11", "sold": 2195, "unsold": 671, "sell_through_pct": 76.6, "avg_hammer": 44.33}, {"month": "2024-12", "sold": 436, "unsold": 209, "sell_through_pct": 67.6, "avg_hammer": 34.0}, {"month": "2025-01", "sold": 1710, "unsold": 502, "sell_through_pct": 77.3, "avg_hammer": 55.03}, {"month": "2025-02", "sold": 1687, "unsold": 621, "sell_through_pct": 73.1, "avg_hammer": 46.99}, {"month": "2025-03", "sold": 1506, "unsold": 610, "sell_through_pct": 71.2, "avg_hammer": 39.24}, {"month": "2025-04", "sold": 1448, "unsold": 507, "sell_through_pct": 74.1, "avg_hammer": 51.9}, {"month": "2025-05", "sold": 2396, "unsold": 868, "sell_through_pct": 73.4, "avg_hammer": 43.54}, {"month": "2025-06", "sold": 1670, "unsold": 457, "sell_through_pct": 78.5, "avg_hammer": 42.94}, {"month": "2025-07", "sold": 1608, "unsold": 562, "sell_through_pct": 74.1, "avg_hammer": 47.66}, {"month": "2025-08", "sold": 1657, "unsold": 452, "sell_through_pct": 78.6, "avg_hammer": 46.06}, {"month": "2025-09", "sold": 1626, "unsold": 560, "sell_through_pct": 74.4, "avg_hammer": 42.81}, {"month": "2025-10", "sold": 1959, "unsold": 635, "sell_through_pct": 75.5, "avg_hammer": 42.72}, {"month": "2025-11", "sold": 2184, "unsold": 659, "sell_through_pct": 76.8, "avg_hammer": 61.35}, {"month": "2025-12", "sold": 1229, "unsold": 406, "sell_through_pct": 75.2, "avg_hammer": 46.46}, {"month": "2026-01", "sold": 1785, "unsold": 356, "sell_through_pct": 83.4, "avg_hammer": 57.14}, {"month": "2026-02", "sold": 1951, "unsold": 383, "sell_through_pct": 83.6, "avg_hammer": 55.66}, {"month": "2026-03", "sold": 1937, "unsold": 509, "sell_through_pct": 79.2, "avg_hammer": 48.24}, {"month": "2026-04", "sold": 1923, "unsold": 410, "sell_through_pct": 82.4, "avg_hammer": 48.27}, {"month": "2026-05", "sold": 2691, "unsold": 602, "sell_through_pct": 81.7, "avg_hammer": 47.1}, {"month": "2026-06", "sold": 1748, "unsold": 422, "sell_through_pct": 80.6, "avg_hammer": 47.52}, {"month": "2026-07", "sold": 1663, "unsold": 402, "sell_through_pct": 80.5, "avg_hammer": 54.02}], "category_summary": [{"category": "Other / uncategorised", "total_lots": 59834, "sold": 48730, "unsold": 11104, "sell_through_pct": 81.4, "avg_hammer": 48.65}, {"category": "Jewellery", "total_lots": 35654, "sold": 29278, "unsold": 6376, "sell_through_pct": 82.1, "avg_hammer": 67.13}, {"category": "Collectables", "total_lots": 34433, "sold": 28287, "unsold": 6146, "sell_through_pct": 82.2, "avg_hammer": 53.05}, {"category": "Silver", "total_lots": 24854, "sold": 21389, "unsold": 3465, "sell_through_pct": 86.1, "avg_hammer": 56.16}, {"category": "Militaria", "total_lots": 5832, "sold": 5097, "unsold": 735, "sell_through_pct": 87.4, "avg_hammer": 74.17}, {"category": "Watches", "total_lots": 5524, "sold": 4587, "unsold": 937, "sell_through_pct": 83.0, "avg_hammer": 65.48}, {"category": "Furniture", "total_lots": 4664, "sold": 3718, "unsold": 946, "sell_through_pct": 79.7, "avg_hammer": 34.87}, {"category": "Models", "total_lots": 2876, "sold": 2522, "unsold": 354, "sell_through_pct": 87.7, "avg_hammer": 35.72}, {"category": "Household", "total_lots": 2122, "sold": 1743, "unsold": 379, "sell_through_pct": 82.1, "avg_hammer": 31.07}, {"category": "Coins", "total_lots": 1158, "sold": 954, "unsold": 204, "sell_through_pct": 82.4, "avg_hammer": 85.44}, {"category": "White Goods", "total_lots": 313, "sold": 277, "unsold": 36, "sell_through_pct": 88.5, "avg_hammer": 28.45}], "cat_month_series": {"Jewellery": [{"month": "2020-03", "sell_through_pct": 76.9, "n": 294}, {"month": "2020-05", "sell_through_pct": 83.1, "n": 296}, {"month": "2020-06", "sell_through_pct": 88.3, "n": 223}, {"month": "2020-07", "sell_through_pct": 82.2, "n": 276}, {"month": "2020-08", "sell_through_pct": 87.8, "n": 221}, {"month": "2020-09", "sell_through_pct": 85.7, "n": 301}, {"month": "2020-10", "sell_through_pct": 88.6, "n": 446}, {"month": "2020-11", "sell_through_pct": 84.2, "n": 467}, {"month": "2020-12", "sell_through_pct": 83.0, "n": 442}, {"month": "2021-01", "sell_through_pct": 87.0, "n": 407}, {"month": "2021-02", "sell_through_pct": 90.7, "n": 579}, {"month": "2021-03", "sell_through_pct": 88.3, "n": 634}, {"month": "2021-04", "sell_through_pct": 89.1, "n": 910}, {"month": "2021-05", "sell_through_pct": 83.1, "n": 656}, {"month": "2021-06", "sell_through_pct": 81.4, "n": 559}, {"month": "2021-07", "sell_through_pct": 85.1, "n": 530}, {"month": "2021-08", "sell_through_pct": 89.7, "n": 677}, {"month": "2021-09", "sell_through_pct": 88.0, "n": 635}, {"month": "2021-10", "sell_through_pct": 86.4, "n": 1063}, {"month": "2021-11", "sell_through_pct": 86.9, "n": 589}, {"month": "2021-12", "sell_through_pct": 77.7, "n": 431}, {"month": "2022-01", "sell_through_pct": 89.1, "n": 476}, {"month": "2022-02", "sell_through_pct": 86.7, "n": 248}, {"month": "2022-03", "sell_through_pct": 78.4, "n": 320}, {"month": "2022-04", "sell_through_pct": 83.7, "n": 406}, {"month": "2022-05", "sell_through_pct": 73.6, "n": 360}, {"month": "2022-06", "sell_through_pct": 83.1, "n": 409}, {"month": "2022-07", "sell_through_pct": 68.4, "n": 923}, {"month": "2022-08", "sell_through_pct": 85.4, "n": 742}, {"month": "2022-09", "sell_through_pct": 77.0, "n": 578}, {"month": "2022-10", "sell_through_pct": 87.8, "n": 581}, {"month": "2022-11", "sell_through_pct": 86.6, "n": 461}, {"month": "2022-12", "sell_through_pct": 85.4, "n": 583}, {"month": "2023-01", "sell_through_pct": 85.0, "n": 432}, {"month": "2023-02", "sell_through_pct": 80.7, "n": 481}, {"month": "2023-03", "sell_through_pct": 91.6, "n": 570}, {"month": "2023-04", "sell_through_pct": 93.4, "n": 528}, {"month": "2023-05", "sell_through_pct": 74.1, "n": 629}, {"month": "2023-06", "sell_through_pct": 85.1, "n": 745}, {"month": "2023-07", "sell_through_pct": 81.2, "n": 600}, {"month": "2023-08", "sell_through_pct": 90.8, "n": 522}, {"month": "2023-09", "sell_through_pct": 86.6, "n": 610}, {"month": "2023-10", "sell_through_pct": 89.7, "n": 591}, {"month": "2023-11", "sell_through_pct": 93.8, "n": 624}, {"month": "2023-12", "sell_through_pct": 81.6, "n": 462}, {"month": "2024-01", "sell_through_pct": 81.9, "n": 608}, {"month": "2024-02", "sell_through_pct": 88.3, "n": 471}, {"month": "2024-03", "sell_through_pct": 88.0, "n": 540}, {"month": "2024-04", "sell_through_pct": 83.9, "n": 380}, {"month": "2024-05", "sell_through_pct": 83.1, "n": 522}, {"month": "2024-06", "sell_through_pct": 77.8, "n": 338}, {"month": "2024-07", "sell_through_pct": 79.9, "n": 379}, {"month": "2024-08", "sell_through_pct": 77.6, "n": 419}, {"month": "2024-09", "sell_through_pct": 64.5, "n": 279}, {"month": "2024-10", "sell_through_pct": 85.1, "n": 350}, {"month": "2024-11", "sell_through_pct": 66.3, "n": 483}, {"month": "2024-12", "sell_through_pct": 60.0, "n": 15}, {"month": "2025-01", "sell_through_pct": 69.9, "n": 492}, {"month": "2025-02", "sell_through_pct": 65.0, "n": 371}, {"month": "2025-03", "sell_through_pct": 70.1, "n": 405}, {"month": "2025-04", "sell_through_pct": 69.2, "n": 399}, {"month": "2025-05", "sell_through_pct": 66.4, "n": 652}, {"month": "2025-06", "sell_through_pct": 78.1, "n": 393}, {"month": "2025-07", "sell_through_pct": 79.0, "n": 366}, {"month": "2025-08", "sell_through_pct": 80.1, "n": 381}, {"month": "2025-09", "sell_through_pct": 79.1, "n": 358}, {"month": "2025-10", "sell_through_pct": 75.1, "n": 462}, {"month": "2025-11", "sell_through_pct": 70.1, "n": 489}, {"month": "2025-12", "sell_through_pct": 73.2, "n": 194}, {"month": "2026-01", "sell_through_pct": 78.9, "n": 350}, {"month": "2026-02", "sell_through_pct": 79.2, "n": 351}, {"month": "2026-03", "sell_through_pct": 70.1, "n": 375}, {"month": "2026-04", "sell_through_pct": 81.8, "n": 318}, {"month": "2026-05", "sell_through_pct": 78.3, "n": 368}, {"month": "2026-06", "sell_through_pct": 85.3, "n": 299}, {"month": "2026-07", "sell_through_pct": 86.7, "n": 330}], "Collectables": [{"month": "2020-03", "sell_through_pct": 77.3, "n": 554}, {"month": "2020-05", "sell_through_pct": 94.2, "n": 189}, {"month": "2020-06", "sell_through_pct": 91.6, "n": 395}, {"month": "2020-07", "sell_through_pct": 88.5, "n": 399}, {"month": "2020-08", "sell_through_pct": 96.2, "n": 263}, {"month": "2020-09", "sell_through_pct": 89.8, "n": 266}, {"month": "2020-10", "sell_through_pct": 88.9, "n": 477}, {"month": "2020-11", "sell_through_pct": 94.7, "n": 361}, {"month": "2020-12", "sell_through_pct": 86.1, "n": 252}, {"month": "2021-01", "sell_through_pct": 90.5, "n": 274}, {"month": "2021-02", "sell_through_pct": 94.3, "n": 383}, {"month": "2021-03", "sell_through_pct": 90.2, "n": 386}, {"month": "2021-04", "sell_through_pct": 87.9, "n": 560}, {"month": "2021-05", "sell_through_pct": 88.8, "n": 627}, {"month": "2021-06", "sell_through_pct": 84.9, "n": 503}, {"month": "2021-07", "sell_through_pct": 87.3, "n": 426}, {"month": "2021-08", "sell_through_pct": 80.3, "n": 502}, {"month": "2021-09", "sell_through_pct": 85.4, "n": 459}, {"month": "2021-10", "sell_through_pct": 85.7, "n": 649}, {"month": "2021-11", "sell_through_pct": 83.9, "n": 485}, {"month": "2021-12", "sell_through_pct": 79.8, "n": 361}, {"month": "2022-01", "sell_through_pct": 90.6, "n": 479}, {"month": "2022-02", "sell_through_pct": 88.5, "n": 506}, {"month": "2022-03", "sell_through_pct": 81.0, "n": 696}, {"month": "2022-04", "sell_through_pct": 82.8, "n": 501}, {"month": "2022-05", "sell_through_pct": 85.2, "n": 500}, {"month": "2022-06", "sell_through_pct": 87.1, "n": 580}, {"month": "2022-07", "sell_through_pct": 82.9, "n": 662}, {"month": "2022-08", "sell_through_pct": 87.5, "n": 375}, {"month": "2022-09", "sell_through_pct": 83.1, "n": 356}, {"month": "2022-10", "sell_through_pct": 89.2, "n": 446}, {"month": "2022-11", "sell_through_pct": 85.5, "n": 476}, {"month": "2022-12", "sell_through_pct": 85.9, "n": 658}, {"month": "2023-01", "sell_through_pct": 89.5, "n": 610}, {"month": "2023-02", "sell_through_pct": 84.1, "n": 596}, {"month": "2023-03", "sell_through_pct": 83.8, "n": 575}, {"month": "2023-04", "sell_through_pct": 82.4, "n": 415}, {"month": "2023-05", "sell_through_pct": 78.3, "n": 420}, {"month": "2023-06", "sell_through_pct": 78.8, "n": 528}, {"month": "2023-07", "sell_through_pct": 80.6, "n": 651}, {"month": "2023-08", "sell_through_pct": 79.8, "n": 450}, {"month": "2023-09", "sell_through_pct": 77.0, "n": 547}, {"month": "2023-10", "sell_through_pct": 87.0, "n": 463}, {"month": "2023-11", "sell_through_pct": 87.2, "n": 462}, {"month": "2023-12", "sell_through_pct": 84.2, "n": 431}, {"month": "2024-01", "sell_through_pct": 79.8, "n": 515}, {"month": "2024-02", "sell_through_pct": 83.2, "n": 387}, {"month": "2024-03", "sell_through_pct": 82.7, "n": 387}, {"month": "2024-04", "sell_through_pct": 81.8, "n": 517}, {"month": "2024-05", "sell_through_pct": 77.3, "n": 490}, {"month": "2024-06", "sell_through_pct": 76.3, "n": 430}, {"month": "2024-07", "sell_through_pct": 74.5, "n": 364}, {"month": "2024-08", "sell_through_pct": 73.4, "n": 398}, {"month": "2024-09", "sell_through_pct": 69.4, "n": 369}, {"month": "2024-10", "sell_through_pct": 75.5, "n": 302}, {"month": "2024-11", "sell_through_pct": 76.5, "n": 494}, {"month": "2024-12", "sell_through_pct": 73.7, "n": 152}, {"month": "2025-01", "sell_through_pct": 75.1, "n": 325}, {"month": "2025-02", "sell_through_pct": 67.0, "n": 400}, {"month": "2025-03", "sell_through_pct": 75.0, "n": 388}, {"month": "2025-04", "sell_through_pct": 74.8, "n": 425}, {"month": "2025-05", "sell_through_pct": 78.2, "n": 509}, {"month": "2025-06", "sell_through_pct": 76.8, "n": 439}, {"month": "2025-07", "sell_through_pct": 76.3, "n": 473}, {"month": "2025-08", "sell_through_pct": 78.4, "n": 399}, {"month": "2025-09", "sell_through_pct": 67.5, "n": 456}, {"month": "2025-10", "sell_through_pct": 74.0, "n": 434}, {"month": "2025-11", "sell_through_pct": 75.2, "n": 596}, {"month": "2025-12", "sell_through_pct": 83.7, "n": 276}, {"month": "2026-01", "sell_through_pct": 79.7, "n": 395}, {"month": "2026-02", "sell_through_pct": 87.3, "n": 521}, {"month": "2026-03", "sell_through_pct": 78.7, "n": 567}, {"month": "2026-04", "sell_through_pct": 77.3, "n": 497}, {"month": "2026-05", "sell_through_pct": 79.4, "n": 612}, {"month": "2026-06", "sell_through_pct": 75.4, "n": 398}, {"month": "2026-07", "sell_through_pct": 74.5, "n": 364}], "Silver": [{"month": "2020-03", "sell_through_pct": 79.9, "n": 528}, {"month": "2020-05", "sell_through_pct": 96.4, "n": 248}, {"month": "2020-06", "sell_through_pct": 90.9, "n": 418}, {"month": "2020-07", "sell_through_pct": 87.4, "n": 349}, {"month": "2020-08", "sell_through_pct": 84.3, "n": 434}, {"month": "2020-09", "sell_through_pct": 84.6, "n": 408}, {"month": "2020-10", "sell_through_pct": 86.5, "n": 520}, {"month": "2020-11", "sell_through_pct": 93.6, "n": 233}, {"month": "2020-12", "sell_through_pct": 91.0, "n": 212}, {"month": "2021-01", "sell_through_pct": 94.5, "n": 307}, {"month": "2021-02", "sell_through_pct": 93.8, "n": 243}, {"month": "2021-03", "sell_through_pct": 89.2, "n": 370}, {"month": "2021-04", "sell_through_pct": 91.4, "n": 486}, {"month": "2021-05", "sell_through_pct": 89.4, "n": 263}, {"month": "2021-06", "sell_through_pct": 83.7, "n": 325}, {"month": "2021-07", "sell_through_pct": 81.5, "n": 308}, {"month": "2021-08", "sell_through_pct": 83.8, "n": 197}, {"month": "2021-09", "sell_through_pct": 89.9, "n": 267}, {"month": "2021-10", "sell_through_pct": 89.7, "n": 407}, {"month": "2021-11", "sell_through_pct": 91.1, "n": 282}, {"month": "2021-12", "sell_through_pct": 86.5, "n": 251}, {"month": "2022-01", "sell_through_pct": 82.1, "n": 218}, {"month": "2022-02", "sell_through_pct": 93.9, "n": 313}, {"month": "2022-03", "sell_through_pct": 82.9, "n": 292}, {"month": "2022-04", "sell_through_pct": 81.2, "n": 319}, {"month": "2022-05", "sell_through_pct": 77.4, "n": 265}, {"month": "2022-06", "sell_through_pct": 90.6, "n": 308}, {"month": "2022-07", "sell_through_pct": 84.8, "n": 362}, {"month": "2022-08", "sell_through_pct": 92.4, "n": 251}, {"month": "2022-09", "sell_through_pct": 87.8, "n": 229}, {"month": "2022-10", "sell_through_pct": 93.7, "n": 189}, {"month": "2022-11", "sell_through_pct": 81.9, "n": 276}, {"month": "2022-12", "sell_through_pct": 90.2, "n": 348}, {"month": "2023-01", "sell_through_pct": 87.2, "n": 298}, {"month": "2023-02", "sell_through_pct": 84.3, "n": 248}, {"month": "2023-03", "sell_through_pct": 94.9, "n": 158}, {"month": "2023-04", "sell_through_pct": 93.8, "n": 195}, {"month": "2023-05", "sell_through_pct": 86.5, "n": 178}, {"month": "2023-06", "sell_through_pct": 87.6, "n": 282}, {"month": "2023-07", "sell_through_pct": 93.8, "n": 177}, {"month": "2023-08", "sell_through_pct": 94.3, "n": 229}, {"month": "2023-09", "sell_through_pct": 92.8, "n": 180}, {"month": "2023-10", "sell_through_pct": 91.3, "n": 230}, {"month": "2023-11", "sell_through_pct": 91.1, "n": 293}, {"month": "2023-12", "sell_through_pct": 83.8, "n": 302}, {"month": "2024-01", "sell_through_pct": 86.4, "n": 323}, {"month": "2024-02", "sell_through_pct": 89.7, "n": 263}, {"month": "2024-03", "sell_through_pct": 83.0, "n": 305}, {"month": "2024-04", "sell_through_pct": 92.7, "n": 358}, {"month": "2024-05", "sell_through_pct": 83.6, "n": 432}, {"month": "2024-06", "sell_through_pct": 92.3, "n": 336}, {"month": "2024-07", "sell_through_pct": 81.3, "n": 310}, {"month": "2024-08", "sell_through_pct": 86.9, "n": 282}, {"month": "2024-09", "sell_through_pct": 82.1, "n": 357}, {"month": "2024-10", "sell_through_pct": 96.2, "n": 395}, {"month": "2024-11", "sell_through_pct": 88.9, "n": 443}, {"month": "2024-12", "sell_through_pct": 79.4, "n": 34}, {"month": "2025-01", "sell_through_pct": 86.8, "n": 401}, {"month": "2025-02", "sell_through_pct": 74.7, "n": 474}, {"month": "2025-03", "sell_through_pct": 72.5, "n": 403}, {"month": "2025-04", "sell_through_pct": 73.7, "n": 354}, {"month": "2025-05", "sell_through_pct": 73.5, "n": 559}, {"month": "2025-06", "sell_through_pct": 85.1, "n": 328}, {"month": "2025-07", "sell_through_pct": 74.1, "n": 343}, {"month": "2025-08", "sell_through_pct": 79.3, "n": 397}, {"month": "2025-09", "sell_through_pct": 80.1, "n": 376}, {"month": "2025-10", "sell_through_pct": 77.8, "n": 509}, {"month": "2025-11", "sell_through_pct": 83.7, "n": 448}, {"month": "2025-12", "sell_through_pct": 79.7, "n": 177}, {"month": "2026-01", "sell_through_pct": 88.2, "n": 382}, {"month": "2026-02", "sell_through_pct": 81.4, "n": 345}, {"month": "2026-03", "sell_through_pct": 87.3, "n": 369}, {"month": "2026-04", "sell_through_pct": 88.8, "n": 483}, {"month": "2026-05", "sell_through_pct": 88.7, "n": 652}, {"month": "2026-06", "sell_through_pct": 90.3, "n": 443}, {"month": "2026-07", "sell_through_pct": 91.2, "n": 377}], "Militaria": [{"month": "2020-03", "sell_through_pct": 85.7, "n": 98}, {"month": "2020-05", "sell_through_pct": 100.0, "n": 29}, {"month": "2020-06", "sell_through_pct": 92.2, "n": 51}, {"month": "2020-07", "sell_through_pct": 95.5, "n": 44}, {"month": "2020-08", "sell_through_pct": 95.3, "n": 85}, {"month": "2020-09", "sell_through_pct": 88.0, "n": 100}, {"month": "2020-10", "sell_through_pct": 95.3, "n": 106}, {"month": "2020-11", "sell_through_pct": 88.1, "n": 101}, {"month": "2020-12", "sell_through_pct": 86.2, "n": 65}, {"month": "2021-01", "sell_through_pct": 97.2, "n": 106}, {"month": "2021-02", "sell_through_pct": 98.1, "n": 54}, {"month": "2021-03", "sell_through_pct": 89.2, "n": 83}, {"month": "2021-04", "sell_through_pct": 87.5, "n": 48}, {"month": "2021-05", "sell_through_pct": 93.2, "n": 44}, {"month": "2021-06", "sell_through_pct": 85.0, "n": 20}, {"month": "2021-07", "sell_through_pct": 91.9, "n": 62}, {"month": "2021-08", "sell_through_pct": 94.9, "n": 39}, {"month": "2021-09", "sell_through_pct": 93.1, "n": 58}, {"month": "2021-10", "sell_through_pct": 84.1, "n": 63}, {"month": "2021-11", "sell_through_pct": 97.4, "n": 38}, {"month": "2021-12", "sell_through_pct": 91.8, "n": 85}, {"month": "2022-01", "sell_through_pct": 93.8, "n": 48}, {"month": "2022-02", "sell_through_pct": 89.1, "n": 46}, {"month": "2022-03", "sell_through_pct": 92.2, "n": 51}, {"month": "2022-04", "sell_through_pct": 100.0, "n": 30}, {"month": "2022-05", "sell_through_pct": 95.7, "n": 46}, {"month": "2022-06", "sell_through_pct": 97.6, "n": 42}, {"month": "2022-07", "sell_through_pct": 92.0, "n": 50}, {"month": "2022-08", "sell_through_pct": 95.6, "n": 45}, {"month": "2022-09", "sell_through_pct": 84.4, "n": 45}, {"month": "2022-10", "sell_through_pct": 100.0, "n": 36}, {"month": "2022-11", "sell_through_pct": 100.0, "n": 43}, {"month": "2022-12", "sell_through_pct": 93.7, "n": 63}, {"month": "2023-01", "sell_through_pct": 94.9, "n": 39}, {"month": "2023-02", "sell_through_pct": 96.4, "n": 56}, {"month": "2023-03", "sell_through_pct": 94.0, "n": 116}, {"month": "2023-04", "sell_through_pct": 91.6, "n": 95}, {"month": "2023-05", "sell_through_pct": 81.6, "n": 49}, {"month": "2023-06", "sell_through_pct": 90.2, "n": 143}, {"month": "2023-07", "sell_through_pct": 82.5, "n": 114}, {"month": "2023-08", "sell_through_pct": 92.5, "n": 53}, {"month": "2023-09", "sell_through_pct": 89.4, "n": 66}, {"month": "2023-10", "sell_through_pct": 88.6, "n": 44}, {"month": "2023-11", "sell_through_pct": 74.7, "n": 79}, {"month": "2023-12", "sell_through_pct": 93.3, "n": 90}, {"month": "2024-01", "sell_through_pct": 92.9, "n": 85}, {"month": "2024-02", "sell_through_pct": 84.0, "n": 81}, {"month": "2024-03", "sell_through_pct": 87.6, "n": 129}, {"month": "2024-04", "sell_through_pct": 88.1, "n": 109}, {"month": "2024-05", "sell_through_pct": 87.2, "n": 109}, {"month": "2024-06", "sell_through_pct": 93.5, "n": 124}, {"month": "2024-07", "sell_through_pct": 91.5, "n": 117}, {"month": "2024-08", "sell_through_pct": 96.2, "n": 52}, {"month": "2024-09", "sell_through_pct": 90.0, "n": 110}, {"month": "2024-10", "sell_through_pct": 93.1, "n": 87}, {"month": "2024-11", "sell_through_pct": 93.9, "n": 98}, {"month": "2024-12", "sell_through_pct": 63.2, "n": 19}, {"month": "2025-01", "sell_through_pct": 81.7, "n": 104}, {"month": "2025-02", "sell_through_pct": 70.5, "n": 95}, {"month": "2025-03", "sell_through_pct": 63.6, "n": 77}, {"month": "2025-04", "sell_through_pct": 68.1, "n": 72}, {"month": "2025-05", "sell_through_pct": 88.9, "n": 90}, {"month": "2025-06", "sell_through_pct": 86.4, "n": 66}, {"month": "2025-07", "sell_through_pct": 67.4, "n": 89}, {"month": "2025-08", "sell_through_pct": 89.0, "n": 82}, {"month": "2025-09", "sell_through_pct": 77.6, "n": 76}, {"month": "2025-10", "sell_through_pct": 74.8, "n": 155}, {"month": "2025-11", "sell_through_pct": 79.1, "n": 91}, {"month": "2025-12", "sell_through_pct": 69.0, "n": 42}, {"month": "2026-01", "sell_through_pct": 90.4, "n": 115}, {"month": "2026-02", "sell_through_pct": 67.3, "n": 107}, {"month": "2026-03", "sell_through_pct": 88.0, "n": 183}, {"month": "2026-04", "sell_through_pct": 81.8, "n": 66}, {"month": "2026-05", "sell_through_pct": 89.3, "n": 150}, {"month": "2026-06", "sell_through_pct": 73.3, "n": 90}, {"month": "2026-07", "sell_through_pct": 91.5, "n": 94}]}, "estimate_visibility": {"rehydrated_lots_so_far": 95328, "overall_pct_unsold_showing_estimate": 36.4, "by_category": [{"category": "Other / uncategorised", "n": 7465, "pct_showing_estimate": 16.2}, {"category": "Collectables", "n": 3951, "pct_showing_estimate": 20.1}, {"category": "Jewellery", "n": 3567, "pct_showing_estimate": 74.5}, {"category": "Silver", "n": 2084, "pct_showing_estimate": 75.3}, {"category": "Militaria", "n": 581, "pct_showing_estimate": 65.6}, {"category": "Watches", "n": 580, "pct_showing_estimate": 59.0}, {"category": "Furniture", "n": 546, "pct_showing_estimate": 0.5}, {"category": "Household", "n": 262, "pct_showing_estimate": 1.1}, {"category": "Models", "n": 240, "pct_showing_estimate": 27.1}, {"category": "Coins", "n": 132, "pct_showing_estimate": 28.8}, {"category": "White Goods", "n": 19, "pct_showing_estimate": 0.0}], "note": "Every single lot with an estimate populated in the scraped data is unsold (0 of 7,062) \u2014 an estimate never appears on a sold lot's page. Restricted to the ~95k lots rehydrated with full detail so far."}};
+const TOPICS_DATA = {"note":"Demo-scale topic modelling: real KMeans clusters over Voyage embeddings of a random 10% sample of each house's full lot descriptions (17614 Sutton / 9518 Gildings lots), not the full corpus. Cluster labels are the top TF-IDF terms within each cluster, not hand-picked -- a preview of the real category structure a full-corpus run would surface, replacing the current hand-picked keyword buckets.","sample_fraction":0.1,"sutton":{"n_sampled":17614,"clusters":[{"cluster_id":10,"size":2180,"top_terms":["gold","9ct","ring","diamond","sapphire","pendant","2g","3g"],"example_lots":["9ct gold amethyst stud earrings with scroll backs (2.7g)","A silver Blue John bangle and an amethyst pendant (41g)","9ct Gold diamond ring 1.7g"]},{"cluster_id":3,"size":1860,"top_terms":["silver","antique","vintage","sterling","spoons","tea","925","hallmarked"],"example_lots":["Large antique silver sugar bowl by goldsmiths & silver smith...","2 Vintage hand painted glass german beakers","1818 George 111 silver shilling high grade toned coin"]},{"cluster_id":11,"size":1836,"top_terms":["untested","vintage","boxed","model","working","selection","order","lighter"],"example_lots":["Eight brand new boxed Glow Dreaming sleep sensors, untested","Polaris Optics monoscope","Vintage Shell X-100 5 Gallon Oil Can Empty"]},{"cluster_id":8,"size":1813,"top_terms":["silver","jewellery","vintage","rings","set","selection","costume","necklace"],"example_lots":["6 vintage silver gemstone set rings","Boxed 15ct gold framed masonic charity jewel","A silver enamel brooch by Aksel Holmesen, Norway (14g)"]},{"cluster_id":7,"size":1741,"top_terms":["vintage","antique","box","table","chair","wooden","chairs","set"],"example_lots":["Silver sovereign case","Vintage novelty cast iron boy mechanical money box, height 5...","Onyx chess set, 1 piece is broken, please view image"]},{"cluster_id":2,"size":1615,"top_terms":["selection","include","large","miscellaneous","includes","vintage","items","assorted"],"example_lots":["Selection of vintage glass marbles, skittle pegs, etc","Selection vintage pen knives to include MOP, horn sharpener","Large selection of glassware to include some cut glass etc"]},{"cluster_id":5,"size":1517,"top_terms":["measures","inches","approx","height","approximate","tall","approximately","measurements"],"example_lots":["Vintage german silver pin tray measures approx 11cm dia weig...","Large child's outdoor hill mound modular playground measures...","Two wooden carved hand made clock cases, largest measures ap..."]},{"cluster_id":9,"size":1346,"top_terms":["selection","framed","include","large","includes","vintage","prints","books"],"example_lots":["New/Boxed Maisto Marvel \u2013Hulk, Hummer , Kenner Batan and Rob...","Selection of 5 Gibsons boxed jigsaw puzzles","Vintage 1970's Donald Duck swimming fins by Ideal in origina..."]},{"cluster_id":6,"size":1090,"top_terms":["watch","gents","wristwatch","pocket","vintage","watches","untested","antique"],"example_lots":["Vintage gents cyma Navystar cymaflex wristwatch the watch is...","4 Gents vintage wristwatches includes Smiths timex Seiko and...","Vintage military compass in leather case stamped J.W.C.L"]},{"cluster_id":0,"size":1030,"top_terms":["weight","gold","ring","9ct","diamond","18ct","white","2g"],"example_lots":["18ct white gold stone set ring not diamond weight 3g","Vintage 9ct white gold tanzanite ring weight 3.5g","Ladies 9ct gold stone set wishbone ring, weight 1g, ring siz..."]},{"cluster_id":4,"size":825,"top_terms":["weight","silver","vintage","bracelet","bangles","jewellery","necklace","charm"],"example_lots":["Vintage silver charm bracelet & charms weight 55g","Royal Crown Derby gold stopper dove paper weight","10kg UNSORTED COSTUME JEWELLERY inc. Bangles, Necklaces, Rin..."]},{"cluster_id":1,"size":761,"top_terms":["medal","ww1","ww2","medals","military","badges","pte","german"],"example_lots":["ww1 death plaque to john shortland","Collection of ww2 german badges & medals","WW2 Nazi German dagger with scabbard, Holler.erlin to blade,..."]}]},"gildings":{"n_sampled":9518,"clusters":[{"cluster_id":10,"size":1479,"top_terms":["painted","5cm","vase","pair","glass","height","ground","gilt"],"example_lots":["A Copeland Late Spode tricolour jug, relief-moulded with children playing drum and triangle, floral","A continental lead glazed model of a cockerel, repaired, 39cm; a late Staffordshire model of a recum","Robert 'Mouseman' Thompson of Kilburn, an oak standard lamp, tapering octagonal column, spreading ba"]},{"cluster_id":3,"size":1004,"top_terms":["including","collection","silver","boxes","box","glass","plated","tea"],"example_lots":["Box of assorted decorative ceramics, inclduing two Lladro drummer boys, Asian pottery vases, an imar","Royal Albert \"Old County Roses\" tea and dinner service, approximately 54 pieces.","Set of five Dresden china baskets, including two larger baskets with twin-handles, and three smaller"]},{"cluster_id":5,"size":971,"top_terms":["ring","yellow","gold","carat","metal","set","cut","diamond"],"example_lots":["A diamond and green stone ring set in a 9 carat white gold mount ring size N, gross weight 4.9g; a d","A diamond solitaire ring, the brilliant cut stone claw set in a yellow and white metal mount ring si","A diamond cluster ring, seven brilliant cut stones claw set in an 18 carat yellow and white gold mou"]},{"cluster_id":1,"size":965,"top_terms":["signed","oil","watercolour","canvas","dated","board","print"],"example_lots":["Annie Leibovitz, A Photographer's Life 1990-2005, Jonathan Cape, 2006.","Alexander Fraser, Cattle in a meadow, signed, oil on canvas, 76cm x 61cm.","Peter Newcombe, Autumn Berries, oil on canvas, signed and dated '97, 62x92cm."]},{"cluster_id":6,"size":870,"top_terms":["including","collection","edition","vinyl","figures","boxed","limited","books"],"example_lots":["'BB' Denys Watkins-Pitchford, five First Editions, autobiographical and similar, bespoke leather bou","Collection of art posters, including Matisse lithographs, 1973; Henri Matisse, Jazz, Pompidou Centre","Tiger Tim's Tales no.1 to no.28 run of narrow format comics, published by The Almalgamated Press, da"]},{"cluster_id":4,"size":854,"top_terms":["silver","london","birmingham","engraved","5cm","bottles","total"],"example_lots":["Fifteen assorted bottles of New World red wines: 1997 Reserva Castillo de Calatrava, La Mancha,","Two yellow gold game bird stick pins, a 9 carat yellow gold standing cock pheasant with enamelled ey","Pair of Regency Irish silver coasters, marks rubbed, probably Dublin 1819, circular, embossed and ch"]},{"cluster_id":0,"size":801,"top_terms":["model","boxed","ref","models","including","die","engine","cast"],"example_lots":["GRAUPNER MOSQUITO 2500mm span glider kit including electric motor.","Plastic model kits; seven including Airfix 392 Luna Module; R403 BR Mogul locomotive; series 2 Refri","Two glow engines, including WEBRA 10cc RC; SUPER TIGRE 40 series X (pilon motor), with standard carb"]},{"cluster_id":2,"size":672,"top_terms":["height","legs","table","width","mahogany","turned","chairs","chair"],"example_lots":["Elm and beech smokers bow elbow chair, shaped arms above tunred spindles, chaped seat, turned legs a","Four modern black upholstered stacking chairs. (4)","A set of six modern beech kitchen chairs, bullseye central slat back. (6)"]},{"cluster_id":11,"size":646,"top_terms":["drawers","width","depth","height","mahogany","oak","chest","doors"],"example_lots":["Small stained pine carpenter's tool chest and contents, including brace, moulding planes, etc.","Joined oak chest on stand, 18th Century, rectangular top with cavetto cornice, two short and three l","Three-tiered Globe Wernicke bookcase, frosted and leaded glass panels, width 105cm, depth 35cm, heig"]},{"cluster_id":8,"size":517,"top_terms":["dial","watch","case","movement","clock","gold","pocket","striking"],"example_lots":["Rodania lady's wrist watch, 9ct gold case, two Sekonda gentleman's wrist watches, both 19 jewels, av","Waltham steel cased wristwatch, screwback case, the dial with date aperture, AS1581 movement stamped","Replica brass lantern clock, signed William Gray, London, with wooden shelf bracket, height of clock"]},{"cluster_id":9,"size":408,"top_terms":["gauge","railway","model","ref","boxed","locomotive","oo","class"],"example_lots":["O gauge model railway clockwork locomotives, two including Bassett Lowke LMS 4-6-0 'Royal Scot' no.6","Hornby OO gauge model railway coach and coach packs, four including ref. R4252 'The Talisman' 3-coac","Liliput HO gauge model railway diesel electric locomotives, two including ref. L112408 MAK Bo-Bo no."]},{"cluster_id":7,"size":331,"top_terms":["coin","sovereign","gold","coins","silver","george","mint","half"],"example_lots":["George III halfpenny coin, other coins and commemoratives, silver vesta case.","Signatures of George IV and Queen Victoria, taken from warrants, with impressed seals.","Victorian electrotype commemorative plaque, for the Diamond Jubilee 1897, width 30cm; a diecast mode"]}]}};
+const RAG_DATA = {"note":"Demo retrieval over the same 10% Sutton sample used for topic modelling -- numpy cosine similarity over Voyage embeddings, no vector database. The draft description is a simple template pulling from the nearest comparable, not an LLM generation call -- a dummy stand-in to demonstrate the retrieval mechanism a real RAG cataloguing assistant would be built on.","results":[{"query":"small silver pocket watch, engraved case, not currently working","draft_description":"Draft (template, not model-generated): Small silver pocket watch, engraved case, not currently working. Similar in style to a previously catalogued lot: \u201cVintage silver cased pocket watch, untested\u2026\u201d. Comparable past lots sold in the \u00a330\u2013\u00a350 range.","comparables":[{"text":"Vintage silver cased pocket watch, untested","hammer_price":"50.0","auction_date":"Sat 21st March 2026 from 10am","similarity":0.718,"lot_url":"/catalogue/lot/bb74dd5e55cbd7a65f75a316da27ba8a/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-549/"},{"text":"Antique open face silver pocket watch in working order but n...","hammer_price":"45.0","auction_date":"Fri 28th May 2021 from 10am","similarity":0.708,"lot_url":"/catalogue/lot/0af876d73a0398b6da793ef7da4afbec/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-416/"},{"text":"Antique silver fusee pocket watch the watch will tick but s...","hammer_price":"30.0","auction_date":"Fri 20th May 2022 from 10am","similarity":0.706,"lot_url":"/catalogue/lot/451bec696e530a87eda330ebe76d7d85/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-315/"}]},{"query":"WW2 medal group in a presentation box with some paperwork","draft_description":"Draft (template, not model-generated): Ww2 medal group in a presentation box with some paperwork. Similar in style to a previously catalogued lot: \u201cOriginal boxed WW2 medal group in good condition\u2026\u201d. Comparable past lots sold in the \u00a350\u2013\u00a360 range.","comparables":[{"text":"Original boxed WW2 medal group in good condition","hammer_price":"60.0","auction_date":"Fri 26th June 2020 from 10am","similarity":0.763,"lot_url":"/catalogue/lot/80f2a0039a39111ac7422d497057bda0/0cb93d8a5e09787882125c2f0347b542/antique-collectables-jewellery-watches-militarian-a-lot-341/"},{"text":"Boxed ww2 medal group inc special constable medal to theodor...","hammer_price":"","auction_date":"Fri 21st March 2025 from 10am","similarity":0.719,"lot_url":"/catalogue/lot/367259d1d4db7ae0a68133e9bc7e403a/0cb93d8a5e09787882125c2f0347b542/antiques-jewellery-silver-militarian-and-collectable-lot-316/"},{"text":"Boxed ww2 medal group","hammer_price":"50.0","auction_date":"Mon 21st December 2020 from 10am","similarity":0.699,"lot_url":"/catalogue/lot/499aadc537c2a37d506b23b83cd24dce/0cb93d8a5e09787882125c2f0347b542/antique-silver-jewellery-collectables-online-only-lot-363/"}]},{"query":"9 carat gold ring set with a single coloured stone","draft_description":"Draft (template, not model-generated): 9 carat gold ring set with a single coloured stone. Similar in style to a previously catalogued lot: \u201c9ct gold diamond sided stone set ring (3g)\u2026\u201d. Comparable past lots sold in the \u00a330\u2013\u00a335 range.","comparables":[{"text":"9ct gold diamond sided stone set ring (3g)","hammer_price":"","auction_date":"Fri 29th July 2022 from 10am","similarity":0.778,"lot_url":"/catalogue/lot/472d51ad3ad5b1adeaf6499b05082109/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-277/"},{"text":"9ct Gold and silver stone set ring","hammer_price":"35.0","auction_date":"Sat 14th November 2020 from 10am","similarity":0.774,"lot_url":"/catalogue/lot/29ce5ccdd40e0dfc33cbfea55425be68/0cb93d8a5e09787882125c2f0347b542/collectables-jewellery-silver-general-household-whi-lot-390/"},{"text":"9ct gold stone set dress ring 1g","hammer_price":"30.0","auction_date":"Sat 19th September 2020 from 10am","similarity":0.774,"lot_url":"/catalogue/lot/aa32b15871f92f88e6c4965373e1aa50/0cb93d8a5e09787882125c2f0347b542/collectables-jewellery-silver-general-household-whi-lot-443/"}]},{"query":"vintage Wade Whimsies collection, various animals","draft_description":"Draft (template, not model-generated): Vintage wade whimsies collection, various animals. Similar in style to a previously catalogued lot: \u201cSelection of miscellaneous to include Wade Whimsies , 1950s ...\u2026\u201d. Comparable past lots sold in the \u00a310\u2013\u00a330 range.","comparables":[{"text":"Selection of miscellaneous to include Wade Whimsies , 1950s ...","hammer_price":"10.0","auction_date":"Sat 15th November 2025 from 10am","similarity":0.672,"lot_url":"/catalogue/lot/9f483688b88b5e3906607fe158ff77fd/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-189/"},{"text":"Selection of vintage collectables to include , Wade, Wedgwoo...","hammer_price":"10.0","auction_date":"Sat 26th August 2023 from 10am","similarity":0.626,"lot_url":"/catalogue/lot/46b87f86f14075cebaf1e0660f638181/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-142/"},{"text":"Selection of 48 Wade whimsies","hammer_price":"30.0","auction_date":"Sat 27th June 2026 from 10am","similarity":0.584,"lot_url":"/catalogue/lot/e7c5160b6146e0d0254d5156e59f6324/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-18/"}]}]};
+const BIDDER_MATCH_DATA = {"note":"Same retrieval mechanism as the RAG draft-description demo -- numpy cosine similarity over Voyage embeddings of the same 10% Sutton sample -- reframed here as 'a bidder describes what they're interested in, get back real matching lots from your own sale history' rather than category-level demand. Precomputed for a fixed set of example queries -- a public static page can't safely ship the API key needed for live free-text embedding.","results":[{"query":"I collect WWI and WWII medals and militaria","avg_matched_price":60.0,"matches":[{"text":"Selection of military vintage medals, lapels, buttons etc","hammer_price":"130.0","auction_date":"Sat 2nd November 2024 from 10am","similarity":0.672,"lot_url":"/catalogue/lot/38017ca8430117337f37941644804901/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-518/"},{"text":"Collection of ww2 german badges & medals","hammer_price":"40.0","auction_date":"Fri 26th November 2021 from 10am","similarity":0.665,"lot_url":"/catalogue/lot/22712a2a3d618dba9555b238f66f8625/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-549/"},{"text":"Framed collection of military miniature medals","hammer_price":"60.0","auction_date":"Fri 6th August 2021 from 10am","similarity":0.661,"lot_url":"/catalogue/lot/0d3ca24261f0bd6a80a18946f22d1c9d/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-530/"},{"text":"collection of medals includes 2 boxed red cross and ww2 mini...","hammer_price":"40.0","auction_date":"Mon 21st December 2020 from 10am","similarity":0.652,"lot_url":"/catalogue/lot/8aa908f7b4fb1011e93e9b67c5f2123e/0cb93d8a5e09787882125c2f0347b542/antique-silver-jewellery-collectables-online-only-lot-362/"},{"text":"ww1 miniature medals","hammer_price":"30.0","auction_date":"Fri 6th September 2024 from 10am","similarity":0.648,"lot_url":"/catalogue/lot/e8e1805bf92df1118ead439f8bb29362/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-303/"}]},{"query":"Looking for antique silver tableware, hallmarked pieces","avg_matched_price":59.0,"matches":[{"text":"Selection of vintage silver hall marked items to include mon...","hammer_price":"30.0","auction_date":"Sat 2nd December 2023 from 10am","similarity":0.742,"lot_url":"/catalogue/lot/61ec0cdc0a4b31b28bc1da611e3f5b5c/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-484/"},{"text":"Selection of hallmarked silver pieces to include clock, cutl...","hammer_price":"70.0","auction_date":"Sat 5th October 2024 from 10am","similarity":0.722,"lot_url":"/catalogue/lot/284ebd0eaba1b436fa973b98a0f13d11/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-355/"},{"text":"Fine antique silver locket and collar not hallmarked but has...","hammer_price":"140.0","auction_date":"Fri 2nd October 2020 from 10am","similarity":0.709,"lot_url":"/catalogue/lot/2998fa6a1724261785c9a379ea72be19/0cb93d8a5e09787882125c2f0347b542/antique-collectables-jewellery-watches-militarian-a-lot-123/"},{"text":"Selection of hallmarked silver items to include comb, salt a...","hammer_price":"20.0","auction_date":"Sat 25th July 2020 from 10am","similarity":0.686,"lot_url":"/catalogue/lot/47e67b98bb5c87fc910c2f7f13cba6c4/0cb93d8a5e09787882125c2f0347b542/collectables-jewellery-silver-general-household-whi-lot-305/"},{"text":"Silver hallmarked dressing table mirror, button hooks, shoe ...","hammer_price":"35.0","auction_date":"Sat 2nd July 2022 from 10am","similarity":0.683,"lot_url":"/catalogue/lot/f640e41c303deab2c024d7941a022d58/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-519/"}]},{"query":"Interested in diecast model cars and vintage toys","avg_matched_price":19.67,"matches":[{"text":"Selection of vintage diecast dinky and other cars","hammer_price":"16.0","auction_date":"Sat 21st May 2022 from 10am","similarity":0.749,"lot_url":"/catalogue/lot/200131f598eb658dab7033b7b6251afe/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-318/"},{"text":"Collection of vintage die cast model vehicles to include Mat...","hammer_price":"","auction_date":"Sat 4th April 2026 from 10am","similarity":0.742,"lot_url":"/catalogue/lot/bcb63e9fe39f5b19d9a6a9fde017fb71/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-465/"},{"text":"Large selection of assorted die cast cars","hammer_price":"8.0","auction_date":"Sat 22nd October 2022 from 10am","similarity":0.719,"lot_url":"/catalogue/lot/1e9ecbc239afa45763c99e78fc361c42/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-74/"},{"text":"Selection of vintage and later diecast cars","hammer_price":"","auction_date":"Sat 18th June 2022 from 10am","similarity":0.719,"lot_url":"/catalogue/lot/c7fff09a92debe89e1716106abfeb463/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-31/"},{"text":"Selection of vintage diecast toys vehicles to include Dinkys...","hammer_price":"35.0","auction_date":"Sat 28th June 2025 from 10am","similarity":0.715,"lot_url":"/catalogue/lot/f05f08ee70d096681f319ad6789bd511/0cb93d8a5e09787882125c2f0347b542/collectables-models-jewellery-silver-militarian-ho-lot-34/"}]},{"query":"After gold jewellery with coloured gemstones","avg_matched_price":40.0,"matches":[{"text":"9ct gold vintage yellow gemstone & diamond floral earrings (...","hammer_price":"","auction_date":"Fri 16th December 2022 from 10am","similarity":0.639,"lot_url":"/catalogue/lot/1cbe7c3d1b27ccb6043826d4dd6e2ade/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-129/"},{"text":"9ct gold blue gemstone earrings","hammer_price":"20.0","auction_date":"Fri 27th June 2025 from 10am","similarity":0.633,"lot_url":"/catalogue/lot/0f2ad4875996d435c70b6108e534bfec/0cb93d8a5e09787882125c2f0347b542/collectables-jewellery-silver-militarian-lot-433/"},{"text":"3 x 9ct gold gemstone stud earrings inc. sapphire, ruby","hammer_price":"45.0","auction_date":"Fri 11th June 2021 from 10am","similarity":0.629,"lot_url":"/catalogue/lot/f3ef0c471722c310b5a54c172a1c323d/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-349/"},{"text":"2 x 9ct gold gemstone earrings inc. emerald, jadeite (2.2g)","hammer_price":"50.0","auction_date":"Fri 29th October 2021 from 10am","similarity":0.624,"lot_url":"/catalogue/lot/e2801b2951c65f08285dba97a5018bbf/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-298/"},{"text":"3 x 9ct gold earrings inc. sapphire, garnet & green gemstone...","hammer_price":"45.0","auction_date":"Fri 12th August 2022 from 10am","similarity":0.621,"lot_url":"/catalogue/lot/38e52c5da468e564a025835b13b7a53c/0cb93d8a5e09787882125c2f0347b542/antique-jewellery-silver-and-collectables-auction-lot-163/"}]}]};
 
 (function () {
   const root = document.documentElement;
@@ -634,33 +745,96 @@ document.getElementById('callout-text').innerHTML =
   `(Silver and Jewellery show one ~75% of the time; everyday Collectables only ~20%). ` +
   `${STATS.estimate_visibility.note} Worth asking directly: is an estimate only shown when a lot didn't meet reserve, and does that vary deliberately by category — or is this just inconsistent cataloguing?`;
 
-// ---------- Tab 2: illustrative competitor comparison ----------
-(function () {
-  const competitors = [
-    { label: 'Auction House A (you — real)', value: STATS.overall.sell_through_pct, valueLabel: STATS.overall.sell_through_pct + '%', color: cssVar('--accent-deep') },
-    { label: 'Competitor B (illustrative)', value: 76, valueLabel: '76% (placeholder)', color: cssVar('--line-primary') },
-    { label: 'Competitor C (illustrative)', value: 71, valueLabel: '71% (placeholder)', color: cssVar('--line-secondary') },
-  ];
-  const container = document.getElementById('chart-competitors');
-  const barH = 32, gap = 18, padL = 210, padR = 70, padT = 10, padB = 10;
-  const W = 900;
-  const innerW = W - padL - padR;
-  const H = competitors.length * (barH + gap) - gap + padT + padB;
-  const maxVal = 100;
-  let bars = '';
-  competitors.forEach((d, i) => {
-    const y = padT + i * (barH + gap);
-    const w = Math.max(2, (innerW * d.value) / maxVal);
-    bars += `
-      <text class="bar-label" x="${padL - 12}" y="${y + barH / 2 + 4}" text-anchor="end">${d.label}</text>
-      <rect x="${padL}" y="${y}" width="${w}" height="${barH}" rx="4" fill="${d.color}" />
-      <text class="data-label" x="${padL + w + 8}" y="${y + barH / 2 + 4}">${d.valueLabel}</text>
-    `;
+// ---------- Tab 2: real Sutton vs. Gildings comparison ----------
+const GILDINGS_STATS = {"by_year": {"2018": {"lots": 2426, "sold": 2426, "avg_hammer_price": 355.39}, "2019": {"lots": 12849, "sold": 12849, "avg_hammer_price": 163.87}, "2020": {"lots": 9188, "sold": 9188, "avg_hammer_price": 179.87}, "2021": {"lots": 12323, "sold": 12323, "avg_hammer_price": 164.21}, "2022": {"lots": 12891, "sold": 12891, "avg_hammer_price": 165.9}, "2023": {"lots": 13430, "sold": 13430, "avg_hammer_price": 172.27}, "2024": {"lots": 12008, "sold": 12008, "avg_hammer_price": 178.1}, "2025": {"lots": 10571, "sold": 10570, "avg_hammer_price": 202.62}, "2026": {"lots": 6667, "sold": 6667, "avg_hammer_price": 260.0}}, "overall_avg_hammer_price": 185.27, "overall_sold_lots": 92352};
+
+const SUTTON_MARKET_STATS = (function () {
+  const byYear = {};
+  STATS.monthly_series.forEach(m => {
+    const y = m.month.slice(0, 4);
+    byYear[y] = byYear[y] || { sold: 0, hammerSum: 0 };
+    byYear[y].sold += m.sold;
+    byYear[y].hammerSum += m.sold * m.avg_hammer;
   });
-  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}">${bars}</svg>`;
-  document.getElementById('legend-competitors').innerHTML =
-    `<div class="item"><span class="swatch" style="background:${cssVar('--accent-deep')}"></span>Real data</div>` +
-    `<div class="item"><span class="swatch" style="background:${cssVar('--line-primary')}"></span>Illustrative placeholder</div>`;
+  const out = {};
+  let totalSold = 0, totalSum = 0;
+  Object.keys(byYear).sort().forEach(y => {
+    const d = byYear[y];
+    out[y] = { sold: d.sold, avg_hammer_price: Math.round((d.hammerSum / d.sold) * 100) / 100 };
+    totalSold += d.sold; totalSum += d.hammerSum;
+  });
+  return { by_year: out, overall_avg_hammer_price: Math.round((totalSum / totalSold) * 100) / 100, overall_sold_lots: totalSold };
+})();
+
+document.getElementById('kpi-gildings-lots').textContent = fmtInt(GILDINGS_STATS.overall_sold_lots);
+document.getElementById('kpi-gildings-avg').textContent = '£' + GILDINGS_STATS.overall_avg_hammer_price;
+document.getElementById('kpi-sutton-avg').textContent = '£' + SUTTON_MARKET_STATS.overall_avg_hammer_price;
+const priceRatio = (GILDINGS_STATS.overall_avg_hammer_price / SUTTON_MARKET_STATS.overall_avg_hammer_price);
+document.getElementById('kpi-price-ratio').textContent = priceRatio.toFixed(1) + '×';
+document.getElementById('market-summary-text').innerHTML =
+  `Gildings consistently hammers at roughly <strong>${priceRatio.toFixed(1)}×</strong> your average price per lot, every year in the ` +
+  `comparison — a real, consistent gap, not a one-off. It doesn't yet say <em>why</em>: it could be a ` +
+  `different item mix (higher-value antiques vs. general household), a different bidder base, or ` +
+  `straightforward market positioning. The semantic/category comparison and topic modelling work ` +
+  `in progress is aimed at answering that "why" question next.`;
+
+(function () {
+  const years = Array.from(new Set([...Object.keys(GILDINGS_STATS.by_year), ...Object.keys(SUTTON_MARKET_STATS.by_year)])).sort();
+  const suttonColor = cssVar('--accent-deep') || '#8C6F3F';
+  const gildingsColor = cssVar('--line-secondary') || '#5B7A8C';
+  const container = document.getElementById('chart-market-price');
+  const W = 900, padL = 46, padR = 20, padT = 20, padB = 34;
+  const innerW = W - padL - padR;
+  const groupW = innerW / years.length;
+  const barW = groupW * 0.34, barGap = groupW * 0.06;
+  const maxVal = Math.max(...years.map(y => Math.max(
+    SUTTON_MARKET_STATS.by_year[y]?.avg_hammer_price || 0,
+    GILDINGS_STATS.by_year[y]?.avg_hammer_price || 0
+  ))) * 1.15;
+  const barH_max = 220;
+  const yFor = (v) => padT + barH_max - (barH_max * v) / maxVal;
+
+  let bars = '', labels = '', hoverTargets = '';
+  years.forEach((y, i) => {
+    const gx = padL + i * groupW;
+    const s = SUTTON_MARKET_STATS.by_year[y];
+    const g = GILDINGS_STATS.by_year[y];
+    if (s) {
+      const h = barH_max - (yFor(s.avg_hammer_price) - padT);
+      bars += `<rect class="market-bar-hover" data-tip="Sutton Hill Farm, ${y}: £${s.avg_hammer_price} avg (${fmtInt(s.sold)} sold)" x="${gx}" y="${yFor(s.avg_hammer_price)}" width="${barW}" height="${h}" rx="3" style="fill:${suttonColor}" />`;
+    }
+    if (g) {
+      const h = barH_max - (yFor(g.avg_hammer_price) - padT);
+      bars += `<rect class="market-bar-hover" data-tip="Gildings, ${y}: £${g.avg_hammer_price} avg (${fmtInt(g.sold)} sold)" x="${gx + barW + barGap}" y="${yFor(g.avg_hammer_price)}" width="${barW}" height="${h}" rx="3" style="fill:${gildingsColor}" />`;
+    }
+    labels += `<text class="axis-label" x="${gx + barW + barGap / 2}" y="${padT + barH_max + 18}" text-anchor="middle">${y}</text>`;
+  });
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${padT + barH_max + padB}" id="chart-market-price-svg">
+      <line class="gridline" x1="${padL}" y1="${padT + barH_max}" x2="${W - padR}" y2="${padT + barH_max}" />
+      ${bars}
+      ${labels}
+    </svg>
+    <div class="tooltip" id="chart-market-price-tooltip"></div>
+  `;
+  const tooltip = document.getElementById('chart-market-price-tooltip');
+  const svgEl = document.getElementById('chart-market-price-svg');
+  svgEl.querySelectorAll('.market-bar-hover').forEach(el => {
+    el.addEventListener('mouseenter', (ev) => {
+      tooltip.innerHTML = el.dataset.tip;
+      tooltip.style.opacity = 1;
+      const rect = container.getBoundingClientRect();
+      const scale = rect.width / W;
+      tooltip.style.left = (parseFloat(el.getAttribute('x')) * scale) + 'px';
+      tooltip.style.top = (parseFloat(el.getAttribute('y')) * scale - 40) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+  });
+
+  document.getElementById('legend-market-price').innerHTML =
+    `<div class="item"><span class="swatch" style="background:${suttonColor}"></span>Sutton Hill Farm (you)</div>` +
+    `<div class="item"><span class="swatch" style="background:${gildingsColor}"></span>Gildings Auctioneers</div>`;
 })();
 
 // ---------- Tab 3: valuation assistant, grounded with real comparable lots ----------
@@ -740,67 +914,39 @@ function showAnswer(i, btnEl) {
   }).join('');
 })();
 
-// ---------- Tab 4 (cont.): free-text bidder → category matching, same mechanism as Tab 3 ----------
+// ---------- Tab 4 (cont.): free-text bidder → real matching lots, same retrieval engine as Tab 6 ----------
 (function () {
-  // Same keyword-vocabulary approach used to derive category in the data prep step —
-  // illustrative here (keyword match), a real version would embed + retrieve like the
-  // valuation assistant.
-  const CATEGORY_KEYWORDS = [
-    ['Watches', [/\bwatch(es)?\b/, /wristwatch/, /pocket watch/]],
-    ['Jewellery', [/\bring\b/, /necklace/, /brooch/, /earring/, /bracelet/, /pendant/, /jewellery/, /jewelry/, /gemstone/, /gold\b/]],
-    ['Silver', [/\bsilver\b/, /hallmark/, /sterling/, /tableware/]],
-    ['Coins', [/\bcoin(s)?\b/, /sovereign/, /banknote/, /numismat/]],
-    ['Militaria', [/militar/, /\bmedal(s)?\b/, /bayonet/, /helmet/, /regiment/, /\bww1\b/, /\bww2\b/, /\bwar\b/]],
-    ['Models', [/\bmodel(s)?\b/, /diecast/, /dinky/, /corgi/, /train set/, /matchbox/, /toys?/]],
-    ['Collectables', [/collect/, /figurine/, /ornament/, /vintage/, /antique/, /curiosit/]],
-    ['Furniture', [/\btable\b/, /\bchair(s)?\b/, /cabinet/, /wardrobe/, /sideboard/, /\bdesk\b/, /bookcase/, /furniture/, /sofa/, /bureau/]],
-    ['Household', [/household/, /kitchenware/, /glassware/, /ceramic/, /porcelain/, /\bchina\b/, /pottery/]],
-  ];
-
-  function matchCategory(text) {
-    const t = text.toLowerCase();
-    for (const [cat, patterns] of CATEGORY_KEYWORDS) {
-      if (patterns.some(p => p.test(t))) return cat;
-    }
-    return null;
-  }
-
-  function renderMatch(query, matched) {
+  function renderMatch(entry) {
     const card = document.getElementById('bidder-answer-card');
-    if (!matched) {
-      card.innerHTML = `<p style="font-size:13.5px; color:var(--ink-muted); margin:0">No confident category match for "${query}" in this demo's keyword list — a real version would use semantic retrieval, not exact keywords, and would handle this gracefully.</p>`;
+    if (!entry) {
+      card.innerHTML = `<p style="font-size:13.5px; color:var(--ink-muted); margin:0">Free-text matching needs a live call to the embedding API, which this static demo page can't safely make (no backend to hold the API key) — try one of the examples above, which are precomputed against your real sale history.</p>`;
       return;
     }
-    const c = STATS.category_summary.find(x => x.category === matched);
-    if (!c) { card.innerHTML = `<p style="font-size:13.5px; color:var(--ink-muted); margin:0">Matched "${matched}", but no real data available for it.</p>`; return; }
-    const read = c.sell_through_pct >= 85
-      ? { text: 'Demand comfortably covers supply', cls: 'read-good' }
-      : c.sell_through_pct >= 80
-        ? { text: 'Broadly balanced', cls: 'read-neutral' }
-        : { text: 'Supply may be outpacing demand', cls: 'read-warn' };
+    const priceLine = entry.avg_matched_price
+      ? `<div class="citation"><span class="src-tag">Avg. matched price</span><span class="desc">£${entry.avg_matched_price}</span></div>`
+      : '';
+    const matchLines = entry.matches.map(m => `
+      <div class="citation">
+        <span class="src-tag">${(m.similarity * 100).toFixed(0)}% match</span>
+        <span class="desc">${m.text}${m.hammer_price ? ' — sold £' + m.hammer_price : ' — unsold'} <span class="real-tag">Real lot</span></span>
+      </div>
+    `).join('');
     card.innerHTML = `
-      <p class="a-text">"${query}" → matched to <strong>${matched}</strong></p>
-      <div class="citation"><span class="src-tag">Real supply</span><span class="desc">${fmtInt(c.total_lots)} lots (2020–2026)</span></div>
-      <div class="citation"><span class="src-tag">Real sell-through</span><span class="desc">${c.sell_through_pct}%</span></div>
-      <div class="citation"><span class="src-tag">Read</span><span class="desc"><span class="read-pill ${read.cls}">${read.text}</span></span></div>
+      <p class="a-text">"${entry.query}" → <strong>${entry.matches.length} real matching lots</strong> from your own sale history</p>
+      ${priceLine}
+      ${matchLines}
     `;
   }
 
-  const bidderExamples = [
-    'I collect WWI and WWII medals and militaria',
-    'Looking for antique silver tableware, hallmarked pieces',
-    'Interested in diecast model cars and vintage toys',
-    'After gold jewellery with coloured gemstones',
-  ];
   const box = document.getElementById('bidder-examples');
-  bidderExamples.forEach(q => {
+  BIDDER_MATCH_DATA.results.forEach(entry => {
     const btn = document.createElement('button');
     btn.className = 'qa-example-btn';
-    btn.textContent = q;
+    btn.textContent = entry.query;
     btn.addEventListener('click', () => {
       document.querySelectorAll('#bidder-examples .qa-example-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderMatch(q, matchCategory(q));
+      renderMatch(entry);
     });
     box.appendChild(btn);
   });
@@ -808,10 +954,49 @@ function showAnswer(i, btnEl) {
   document.getElementById('bidder-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       document.querySelectorAll('#bidder-examples .qa-example-btn').forEach(b => b.classList.remove('active'));
-      const q = e.target.value.trim();
-      if (q) renderMatch(q, matchCategory(q));
+      const q = e.target.value.trim().toLowerCase();
+      const entry = BIDDER_MATCH_DATA.results.find(r => r.query.toLowerCase() === q);
+      renderMatch(entry || null);
     }
   });
+})();
+
+// ---------- Tab 5: semantic topics, real clusters, Sutton vs Gildings ----------
+(function () {
+  document.getElementById('topics-note').textContent = TOPICS_DATA.note;
+
+  function renderClusters(containerId, clusters) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = clusters.slice(0, 12).map(c => `
+      <div class="topic-card">
+        <div class="n">${fmtInt(c.size)} lots in sample</div>
+        <div class="terms">${c.top_terms.slice(0, 6).join(' · ')}</div>
+        <div class="example">"${c.example_lots[0] || ''}"</div>
+      </div>
+    `).join('');
+  }
+
+  renderClusters('topics-sutton', TOPICS_DATA.sutton.clusters);
+  renderClusters('topics-gildings', TOPICS_DATA.gildings.clusters);
+})();
+
+// ---------- Tab 6: RAG draft description assistant ----------
+(function () {
+  document.getElementById('rag-note').textContent = RAG_DATA.note;
+
+  const el = document.getElementById('rag-results');
+  el.innerHTML = RAG_DATA.results.map(r => `
+    <div class="rag-card">
+      <div class="query">Input: "${r.query}"</div>
+      <div class="draft">${r.draft_description}</div>
+      ${r.comparables.map(c => `
+        <div class="citation">
+          <span class="src-tag">${(c.similarity * 100).toFixed(0)}% match</span>
+          <span class="desc">${c.text}${c.hammer_price ? ' — sold £' + c.hammer_price : ' — unsold'} <span class="real-tag">Real lot</span></span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
 })();
 </script>
 </body>

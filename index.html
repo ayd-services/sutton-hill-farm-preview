@@ -1004,29 +1004,6 @@ function showAnswer(i, btnEl) {
   const W = canvas.width, H = canvas.height, pad = 20;
   ctx.clearRect(0, 0, W, H);
 
-  // Background shading: exactly three flat tiles -- Sutton-only, Gildings-only,
-  // and shared -- same colour and opacity within each category (no gradient,
-  // no density-based fading) so the three zones read cleanly at a glance.
-  const hexToRgb = hex => {
-    const h = hex.replace('#', '');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-  };
-  const suttonRgb = hexToRgb(suttonColor);
-  const gildingsRgb = hexToRgb(gildingsColor);
-  const sharedRgb = suttonRgb.map((v, i) => Math.round((v + gildingsRgb[i]) / 2));
-  const TILE_ALPHA = 0.22;
-  const suttonFill = `rgba(${suttonRgb.join(',')},${TILE_ALPHA})`;
-  const gildingsFill = `rgba(${gildingsRgb.join(',')},${TILE_ALPHA})`;
-  const sharedFill = `rgba(${sharedRgb.join(',')},${TILE_ALPHA})`;
-  const gridCells = SEMANTIC_MAP_DATA.grid || [];
-  const gridSize = SEMANTIC_MAP_DATA.grid_size || 24;
-  const cellW = (W - pad * 2) / gridSize;
-  const cellH = (H - pad * 2) / gridSize;
-  gridCells.forEach(c => {
-    ctx.fillStyle = c.ng === 0 ? suttonFill : c.ns === 0 ? gildingsFill : sharedFill;
-    ctx.fillRect(pad + c.cx * cellW, pad + c.cy * cellH, cellW + 0.5, cellH + 0.5);
-  });
-
   SEMANTIC_MAP_DATA.points.forEach(p => {
     const px = pad + (p.x / 1000) * (W - pad * 2);
     const py = pad + (p.y / 1000) * (H - pad * 2);
@@ -1038,11 +1015,47 @@ function showAnswer(i, btnEl) {
   });
   ctx.globalAlpha = 1;
 
+  // Three circled example regions -- the single strongest cell for each
+  // bucket (Sutton-only, Gildings-only, shared), not a full-map tiling.
+  const gridCells = SEMANTIC_MAP_DATA.grid || [];
+  const gridSize = SEMANTIC_MAP_DATA.grid_size || 24;
+  const cellW = (W - pad * 2) / gridSize;
+  const cellH = (H - pad * 2) / gridSize;
+  const sharedColor = '#8A6D4E';
+
+  const bestCell = (predicate, rank) =>
+    gridCells.filter(predicate).reduce((best, c) => (!best || rank(c) > rank(best) ? c : best), null);
+
+  const suttonRegion = bestCell(c => c.ng === 0 && c.ns > 0, c => c.ns);
+  const gildingsRegion = bestCell(c => c.ns === 0 && c.ng > 0, c => c.ng);
+  const sharedRegion = bestCell(c => c.ns > 0 && c.ng > 0, c => Math.min(c.ns, c.ng));
+
+  function drawRegion(cell, color, label) {
+    if (!cell) return;
+    const x = pad + (cell.cx + 0.5) * cellW;
+    const y = pad + (cell.cy + 0.5) * cellH;
+    const radius = Math.max(cellW, cellH) * 2.1;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.font = '600 13px -apple-system, sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    const above = y - radius - 10 > 12;
+    ctx.fillText(label, x, above ? y - radius - 10 : y + radius + 18);
+  }
+
+  drawRegion(suttonRegion, suttonColor, 'Sutton-only');
+  drawRegion(gildingsRegion, gildingsColor, 'Gildings-only');
+  drawRegion(sharedRegion, sharedColor, 'Shared');
+
   document.getElementById('legend-semantic-map').innerHTML =
     `<div class="item"><span class="swatch" style="background:${suttonColor}"></span>Sutton Hill Farm (you)</div>` +
     `<div class="item"><span class="swatch" style="background:${gildingsColor}"></span>Gildings Auctioneers</div>` +
     `<div class="item" style="color:var(--ink-muted)">Points close together = semantically similar descriptions</div>` +
-    `<div class="item" style="color:var(--ink-muted)">Background tile = Sutton-only, Gildings-only, or shared territory</div>`;
+    `<div class="item" style="color:var(--ink-muted)">Circled: the strongest example of each region type — Sutton-only, Gildings-only, shared</div>`;
 
   // ---------- Whitespace callout: auto-generated from the grid analysis ----------
   const ws = SEMANTIC_MAP_DATA.whitespace;

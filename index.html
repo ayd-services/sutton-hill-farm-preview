@@ -512,6 +512,7 @@ input[type="text"] { width: 100%; }
           <canvas id="semantic-map-canvas" width="900" height="700" style="width:100%; height:auto; display:block"></canvas>
         </div>
         <div class="legend" id="legend-semantic-map"></div>
+        <div id="semantic-map-samples" style="margin-top:16px"></div>
       </div>
 
       <div class="callout" id="whitespace-callout" style="display:none">
@@ -1028,7 +1029,7 @@ function showAnswer(i, btnEl) {
 
   const suttonRegion = bestCell(c => c.ng === 0 && c.ns > 0, c => c.ns);
   const gildingsRegion = bestCell(c => c.ns === 0 && c.ng > 0, c => c.ng);
-  const sharedRegion = bestCell(c => c.ns > 0 && c.ng > 0, c => Math.min(c.ns, c.ng));
+  const sharedRegion = bestCell(c => c.ns > 0 && c.ng > 0, c => c.ns + c.ng);
 
   function drawRegion(cell, color, label) {
     if (!cell) return;
@@ -1056,6 +1057,24 @@ function showAnswer(i, btnEl) {
     `<div class="item"><span class="swatch" style="background:${gildingsColor}"></span>Gildings Auctioneers</div>` +
     `<div class="item" style="color:var(--ink-muted)">Points close together = semantically similar descriptions</div>` +
     `<div class="item" style="color:var(--ink-muted)">Circled: the strongest example of each region type — Sutton-only, Gildings-only, shared</div>`;
+
+  // What's actually in each circled region -- a real lot from that spot on
+  // the map, not just an abstract shape with a label.
+  const ws0 = SEMANTIC_MAP_DATA.whitespace;
+  const sampleCard = (color, label, region) => {
+    if (!region) return '';
+    return `<div class="rag-card" style="border-left:3px solid ${color}">` +
+      `<div class="query" style="color:${color}">${label} — e.g. "${region.top_words.slice(0, 5).join(', ')}"</div>` +
+      `<div class="draft" style="margin-bottom:0">"${region.example}…"</div>` +
+      `</div>`;
+  };
+  const samplesEl = document.getElementById('semantic-map-samples');
+  if (samplesEl) {
+    samplesEl.innerHTML =
+      sampleCard(gildingsColor, 'Gildings-only', ws0.gildings_only[0]) +
+      sampleCard(sharedColor, 'Shared', ws0.shared[0]) +
+      sampleCard(suttonColor, 'Sutton-only', ws0.sutton_only[0]);
+  }
 
   // ---------- Whitespace callout: auto-generated from the grid analysis ----------
   const ws = SEMANTIC_MAP_DATA.whitespace;

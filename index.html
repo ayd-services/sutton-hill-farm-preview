@@ -1004,28 +1004,26 @@ function showAnswer(i, btnEl) {
   const W = canvas.width, H = canvas.height, pad = 20;
   ctx.clearRect(0, 0, W, H);
 
-  // Background shading: each grid cell tinted by its Sutton/Gildings mix --
-  // pure Sutton territory, pure Gildings territory, and blended overlap all
-  // read at a glance before the individual points are drawn on top.
+  // Background shading: exactly three flat tiles -- Sutton-only, Gildings-only,
+  // and shared -- same colour and opacity within each category (no gradient,
+  // no density-based fading) so the three zones read cleanly at a glance.
   const hexToRgb = hex => {
     const h = hex.replace('#', '');
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
   };
   const suttonRgb = hexToRgb(suttonColor);
   const gildingsRgb = hexToRgb(gildingsColor);
+  const sharedRgb = suttonRgb.map((v, i) => Math.round((v + gildingsRgb[i]) / 2));
+  const TILE_ALPHA = 0.22;
+  const suttonFill = `rgba(${suttonRgb.join(',')},${TILE_ALPHA})`;
+  const gildingsFill = `rgba(${gildingsRgb.join(',')},${TILE_ALPHA})`;
+  const sharedFill = `rgba(${sharedRgb.join(',')},${TILE_ALPHA})`;
   const gridCells = SEMANTIC_MAP_DATA.grid || [];
   const gridSize = SEMANTIC_MAP_DATA.grid_size || 24;
   const cellW = (W - pad * 2) / gridSize;
   const cellH = (H - pad * 2) / gridSize;
-  const maxDensity = Math.max(1, ...gridCells.map(c => c.ns + c.ng));
   gridCells.forEach(c => {
-    const total = c.ns + c.ng;
-    const mix = c.ns / total; // 1 = Sutton-only, 0 = Gildings-only, ~0.5 = shared
-    const r = Math.round(gildingsRgb[0] + (suttonRgb[0] - gildingsRgb[0]) * mix);
-    const g = Math.round(gildingsRgb[1] + (suttonRgb[1] - gildingsRgb[1]) * mix);
-    const b = Math.round(gildingsRgb[2] + (suttonRgb[2] - gildingsRgb[2]) * mix);
-    const alpha = 0.10 + 0.30 * Math.min(1, total / maxDensity);
-    ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+    ctx.fillStyle = c.ng === 0 ? suttonFill : c.ns === 0 ? gildingsFill : sharedFill;
     ctx.fillRect(pad + c.cx * cellW, pad + c.cy * cellH, cellW + 0.5, cellH + 0.5);
   });
 
@@ -1044,7 +1042,7 @@ function showAnswer(i, btnEl) {
     `<div class="item"><span class="swatch" style="background:${suttonColor}"></span>Sutton Hill Farm (you)</div>` +
     `<div class="item"><span class="swatch" style="background:${gildingsColor}"></span>Gildings Auctioneers</div>` +
     `<div class="item" style="color:var(--ink-muted)">Points close together = semantically similar descriptions</div>` +
-    `<div class="item" style="color:var(--ink-muted)">Background tint = which house dominates that area (blended where both are present)</div>`;
+    `<div class="item" style="color:var(--ink-muted)">Background tile = Sutton-only, Gildings-only, or shared territory</div>`;
 
   // ---------- Whitespace callout: auto-generated from the grid analysis ----------
   const ws = SEMANTIC_MAP_DATA.whitespace;
